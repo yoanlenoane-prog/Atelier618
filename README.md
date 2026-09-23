@@ -2,6 +2,8 @@
 
 Application personnelle de suivi de chantier pour architecte : **Gantt prévisionnel / réel**, **plans avec pastilles**, **observations** (texte + photos), **comptes rendus** exportables en PDF. Toutes les données sont stockées dans le **Google Drive** de l’utilisateur. PWA installable sur téléphone et ordinateur, utilisable hors connexion.
 
+👉 **Application en ligne : https://yoanlenoane-prog.github.io/Atelier618/**
+
 👉 **Notice d’utilisation : [docs/NOTICE.md](docs/NOTICE.md)** (également disponible dans l’application, menu « Notice »).
 
 ## Fonctionnalités
@@ -10,7 +12,7 @@ Application personnelle de suivi de chantier pour architecte : **Gantt prévisio
 |---|---|
 | Projets | création, modification, suppression, numérotation, intervenants, statut |
 | Structure | blocs / sous-blocs (réordonnables), dates de bloc déduites des sous-blocs |
-| Gantt | barres prévu / réel, ligne « Aujourd’hui » automatique, dépassement en rouge, avance en vert, projection de fin, écarts en jours, blocs repliables, zoom jour/semaine/mois, observations ouvertes par ligne |
+| Gantt | export PDF paysage au format adapté à la durée (A4 → A0), barres prévu / réel, ligne « Aujourd’hui » automatique, dépassement en rouge, avance en vert, projection de fin, écarts en jours, blocs repliables, zoom jour/semaine/mois, observations ouvertes par ligne |
 | Plans | import PDF (page au choix) / JPG / PNG, zoom (pincement, Ctrl + molette), plusieurs plans par projet |
 | Pastilles | numérotation P-001…, placement en coordonnées relatives, déplacement, couleur selon le statut, filtres |
 | Observations | titre, statut, bloc/sous-bloc, entreprise, paragraphes et photos ordonnés, action demandée, échéance, historique |
@@ -52,4 +54,4 @@ L’identifiant client OAuth Google peut être fourni via `VITE_GOOGLE_CLIENT_ID
 1. Dans le dépôt GitHub : **Settings → Pages → Source : GitHub Actions**.
 2. (Optionnel) **Settings → Secrets and variables → Actions → Variables** : `GOOGLE_CLIENT_ID`.
 3. Chaque push sur `main` déploie l’application (`.github/workflows/deploy.yml`).
-4. Ajoutez l’adresse `https://<utilisateur>.github.io` aux origines autorisées de l’ID client Google.
+4. Dans l’ID client Google : origine autorisée `https://<utilisateur>.github.io`, URI de redirection autorisé `https://<utilisateur>.github.io/<dépôt>/` (connexion par redirection utilisée dans l’application installée sur téléphone).

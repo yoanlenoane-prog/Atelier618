@@ -15,14 +15,25 @@ L’application a besoin d’une « clé » Google pour pouvoir écrire dans vot
 3. Menu **API et services → Bibliothèque** : recherchez **Google Drive API** et cliquez sur **Activer**.
 4. Menu **API et services → Écran de consentement OAuth** : choisissez « Externe », donnez un nom, votre adresse e-mail, puis ajoutez votre propre adresse dans **Utilisateurs test**.
 5. Menu **API et services → Identifiants → Créer des identifiants → ID client OAuth** : type **Application Web**.
-6. Dans **Origines JavaScript autorisées**, ajoutez l’adresse de l’application (elle est affichée dans **Réglages**, par exemple `https://votre-nom.github.io`).
-7. Copiez l’**ID client** (il se termine par `.apps.googleusercontent.com`).
+6. Dans **Origines JavaScript autorisées**, ajoutez l’adresse du site : `https://yoanlenoane-prog.github.io` (elle est rappelée dans **Réglages**).
+7. Dans **URI de redirection autorisés**, ajoutez l’adresse complète de l’application : `https://yoanlenoane-prog.github.io/Atelier618/` (également rappelée dans **Réglages**). Elle sert à la connexion depuis l’application installée sur le téléphone.
+8. Copiez l’**ID client** (il se termine par `.apps.googleusercontent.com`).
+
+### Ouvrir l’application
+
+L’application est hébergée gratuitement sur GitHub Pages :
+
+**https://yoanlenoane-prog.github.io/Atelier618/**
+
+Elle se met à jour automatiquement à chaque modification du projet. Vos données ne sont pas sur ce site : elles restent sur vos appareils et dans votre Google Drive.
 
 ### Connecter l’application
 
 1. Ouvrez l’application, allez dans **Réglages**.
 2. Collez l’ID client, cliquez sur **Enregistrer**.
 3. Cliquez sur **Se connecter avec Google** et acceptez l’accès.
+
+Sur ordinateur, une petite fenêtre Google s’ouvre. Dans l’application installée sur le téléphone, la page Google s’affiche à la place de l’application puis vous ramène automatiquement dedans (« redirection »). Si la connexion ne s’ouvre pas, choisissez **Redirection** dans **Réglages → Mode de connexion**.
 
 > Sans cette étape, l’application fonctionne quand même, mais les données restent uniquement sur l’appareil utilisé.
 
@@ -59,7 +70,7 @@ Pour chaque sous-bloc, renseignez :
 
 - **Début prévu / Fin prévue** : la planification initiale ;
 - **Début réel / Fin réelle** : ce qui s’est réellement passé (boutons rapides « Démarré aujourd’hui » et « Terminé aujourd’hui ») ;
-- **Avancement** (curseur en %) pour une tâche en cours.
+- **Avancement estimé** (curseur en %) pour une tâche en cours.
 
 Les dates d’un bloc sont **calculées automatiquement** à partir de ses sous-blocs : inutile de les saisir.
 
@@ -78,7 +89,7 @@ Menu **Gantt**. Chaque ligne affiche deux barres :
 
 À droite des barres, une étiquette indique l’écart : **Retard +7 j** (rouge) ou **Avance −4 j** (vert). La mention « (est.) » signifie que l’écart est une estimation (tâche pas encore terminée).
 
-Une pastille rouge **● 2** à côté d’un sous-bloc signale **2 observations non résolues**.
+À côté d’un sous-bloc, une pastille rouge **● n** indique le nombre d’observations **non résolues** (à faire ou en cours) de ce sous-bloc. Elle disparaît dès que toutes ses observations sont passées à « Terminé » ou « Sans suite ». Quand un bloc est réduit, sa pastille totalise ses sous-blocs. Le total du projet est affiché en haut du Gantt (cliquez dessus pour voir la liste).
 
 Astuces :
 
@@ -86,6 +97,14 @@ Astuces :
 - **Aujourd’hui** : recentre sur la date du jour.
 - Cliquez sur le nom d’un bloc pour le **réduire ou le développer** ; **Tout réduire** donne une vue globale.
 - Cliquez sur une ligne pour modifier ses dates.
+
+### Exporter le Gantt en PDF
+
+1. Cliquez sur **Exporter en PDF** (en haut du Gantt).
+2. Choisissez **Blocs et sous-blocs** ou **Blocs seuls**.
+3. Cliquez sur **Créer le PDF** : le fichier est téléchargé et, si la case est cochée, une copie est rangée dans **Documents** (catégorie Planning), donc dans Google Drive.
+
+Le PDF est **à l’horizontale (paysage)** et sa **taille s’adapte automatiquement à la durée du chantier** : A4 pour un chantier de quelques mois, puis A3, A2… pour les chantiers plus longs, afin que tout le planning tienne sur la largeur de la page. La fenêtre d’export indique le format retenu avant de créer le fichier. S’il y a beaucoup de lignes, le Gantt continue sur une deuxième page.
 
 > Comment l’écart est calculé : si la fin réelle est saisie, écart = fin réelle − fin prévue. Si la tâche est en cours, l’application estime la date de fin à partir du début réel et de l’avancement. Si la tâche n’a pas démarré alors qu’elle aurait dû, elle est signalée « Démarrage en retard ».
 
@@ -165,7 +184,8 @@ Menu **Comptes rendus → Nouveau compte rendu**.
 3. Écrivez sous chaque **rubrique** (bloc et sous-bloc). Les rubriques vides n’apparaissent pas.
 4. Choisissez la présentation : **par bloc / sous-bloc** ou **par pastille** — même contenu, sans double saisie.
 5. Cochez **Inclure les plans avec les pastilles** pour montrer la localisation des observations.
-6. Onglet **Aperçu** pour relire.
+6. Cochez ou décochez **Inclure le paragraphe « Planning — points de vigilance »** selon que vous voulez faire apparaître les retards du planning dans le compte rendu.
+7. Onglet **Aperçu** pour relire.
 
 ### Exporter en PDF
 
@@ -173,13 +193,13 @@ Menu **Comptes rendus → Nouveau compte rendu**.
 2. Choisissez l’imprimante **« Enregistrer au format PDF »**.
 3. Pour ranger le PDF dans Drive, cliquez sur **Joindre le PDF à Drive** et sélectionnez le fichier : il est envoyé dans le dossier **Comptes rendus** du projet.
 
-Le PDF contient : en-tête, participants, météo, avancement, retards de planning, plans avec pastilles, observations avec photos, et un tableau des **actions à réaliser**.
+Le PDF contient : en-tête, participants, météo, avancement estimé, retards de planning (si la case est cochée), plans avec pastilles, observations avec photos, et un tableau des **actions à réaliser**.
 
 Tous les comptes rendus restent accessibles dans la liste ; depuis une observation, vous voyez dans quels CR elle a été citée.
 
 ## 9. Tableau de bord et documents
 
-Le **Tableau de bord** résume le projet : avancement, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
+Le **Tableau de bord** résume le projet : avancement estimé, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
 
 Le menu **Documents** permet d’ajouter devis, contrats, CR signés… Ils sont envoyés dans le dossier **Documents** (ou **Comptes rendus**) du projet sur Drive. L’icône nuage devient verte une fois le fichier envoyé.
 
@@ -228,7 +248,11 @@ Suivez la section 1 et collez l’ID client dans **Réglages**.
 
 ### La connexion Google affiche « accès bloqué »
 
-Vérifiez que votre adresse est bien dans les **Utilisateurs test** de l’écran de consentement, et que l’adresse de l’application figure dans les **Origines JavaScript autorisées**.
+Vérifiez que votre adresse est bien dans les **Utilisateurs test** de l’écran de consentement, que `https://yoanlenoane-prog.github.io` figure dans les **Origines JavaScript autorisées** et `https://yoanlenoane-prog.github.io/Atelier618/` dans les **URI de redirection autorisés**.
+
+### « redirect_uri_mismatch »
+
+L’URI de redirection n’est pas déclaré exactement comme indiqué dans **Réglages** (attention à la barre `/` finale).
 
 ### Une photo affiche « Image indisponible hors connexion »
 

@@ -117,6 +117,10 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
               <input type="checkbox" checked={cr.inclurePlans} onChange={(e) => set('inclurePlans', e.target.checked)} />
               Inclure les plans avec les pastilles
             </label>
+            <label className="check" style={{ marginTop: 8 }}>
+              <input type="checkbox" checked={cr.inclurePlanning !== false} onChange={(e) => set('inclurePlanning', e.target.checked)} />
+              Inclure le paragraphe « Planning — points de vigilance »
+            </label>
           </div>
 
           <div className="card">

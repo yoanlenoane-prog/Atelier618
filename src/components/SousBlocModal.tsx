@@ -90,7 +90,7 @@ export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBloc
         </div>
         {!sb.finReelle && sb.debutReel && (
           <label className="f">
-            Avancement : {sb.avancement ?? a.avancement} %{sb.avancement === undefined && ' (estimé d’après le temps écoulé)'}
+            Avancement estimé : {sb.avancement ?? a.avancement} %{sb.avancement === undefined && ' (calculé d’après le temps écoulé)'}
             <input type="range" min={0} max={100} step={5} value={sb.avancement ?? a.avancement} onChange={(e) => set('avancement', Number(e.target.value))} />
           </label>
         )}

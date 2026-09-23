@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ISODate, Project } from '../types';
 import { addDays, dayNum, fmt, fromDayNum, monthLabel, weekday } from '../lib/dates';
-import { analyseBloc, analyseSousBloc, etendue, formatEcart, isOpen, sousBlocsEnRetard, TASK_STATE_LABEL } from '../lib/planning';
+import { analyseSousBloc, etendue, finEstimeeProjet, formatEcart, isOpen, sousBlocsEnRetard, TASK_STATE_LABEL } from '../lib/planning';
 import { href } from '../router';
 import { Empty, Seg, useToday } from '../components/ui';
-import { IconCaret } from '../components/Icons';
+import { IconCaret, IconPrint } from '../components/Icons';
+import { GanttExportModal } from '../components/GanttExportModal';
 import { SousBlocModal } from '../components/SousBlocModal';
+import { blocBars, openObsCount, sousBlocBars, type RowBars, type SegmentKind } from '../lib/ganttModel';
 
 type Zoom = 'jour' | 'semaine' | 'mois';
 const DAY_W: Record<Zoom, number> = { jour: 30, semaine: 12, mois: 4 };
@@ -21,62 +23,41 @@ function useNarrow() {
   return n;
 }
 
-interface BarsProps {
-  x: (d: ISODate) => number;
-  dayW: number;
-  debutPrevu?: ISODate;
-  finPrevue?: ISODate;
-  debutReel?: ISODate;
-  finReel?: ISODate;
-  finEstimee?: ISODate;
-  termine: boolean;
-  ecart?: number;
-  ecartDefinitif?: boolean;
-  auj: ISODate;
-  nonDemarre?: boolean;
-}
+const SEG_CLASS: Record<SegmentKind, string> = {
+  plan: 'g-bar plan',
+  real: 'g-bar real',
+  early: 'g-bar real early',
+  over: 'g-bar over',
+  proj: 'g-bar proj',
+  projLate: 'g-bar proj lateproj',
+};
+const SEG_TITLE: Record<SegmentKind, string> = {
+  plan: 'Prévu',
+  real: 'Réel',
+  early: 'Réel — terminé en avance',
+  over: 'Dépassement de la date de fin prévue',
+  proj: 'Projection (fin estimée)',
+  projLate: 'Projection (fin estimée, après la fin prévue)',
+};
 
 /** Barres prévu / réel / projection d'une ligne du Gantt. */
-function Bars({ x, dayW, debutPrevu, finPrevue, debutReel, finReel, finEstimee, termine, ecart, ecartDefinitif, auj, nonDemarre }: BarsProps) {
-  const out: ReactNode[] = [];
-  const end = (d: ISODate) => x(d) + dayW; // la fin est incluse
-  let rightMost = 0;
-
-  if (debutPrevu && finPrevue) {
-    out.push(<div key="plan" className="g-bar plan" style={{ left: x(debutPrevu), width: end(finPrevue) - x(debutPrevu) }} title={`Prévu : ${fmt(debutPrevu)} → ${fmt(finPrevue)}`} />);
-    rightMost = end(finPrevue);
-  }
-  if (debutReel && finReel) {
-    const r0 = x(debutReel);
-    const r1 = end(finReel);
-    const limit = finPrevue ? end(finPrevue) : Infinity;
-    const early = termine && (ecart ?? 0) < 0;
-    const normalEnd = Math.min(r1, limit);
-    if (normalEnd > r0)
-      out.push(<div key="real" className={'g-bar real' + (early ? ' early' : '')} style={{ left: r0, width: normalEnd - r0 }} title={`Réel : ${fmt(debutReel)} → ${termine ? fmt(finReel) : 'en cours'}`} />);
-    if (r1 > limit) {
-      const s = Math.max(r0, limit);
-      out.push(<div key="over" className="g-bar over" style={{ left: s, width: r1 - s }} title="Dépassement de la date de fin prévue" />);
-    }
-    rightMost = Math.max(rightMost, r1);
-  }
-  // Projection (« ce qui devrait se passer ensuite »)
-  if (!termine && finEstimee) {
-    const s = nonDemarre ? x(auj) : finReel ? end(finReel) : x(auj);
-    const e = end(finEstimee);
-    if (e > s) {
-      const late = finPrevue ? dayNum(finEstimee) > dayNum(finPrevue) : false;
-      out.push(<div key="proj" className={'g-bar proj' + (late ? ' lateproj' : '')} style={{ left: s, width: e - s }} title={`Fin estimée : ${fmt(finEstimee)}`} />);
-      rightMost = Math.max(rightMost, e);
-    }
-  }
-  if (ecart !== undefined && (ecart !== 0 || ecartDefinitif)) {
-    const cls = ecart > 0 ? 'late' : ecart < 0 ? 'early' : 'ok';
+function Bars({ bars, start, dayW }: { bars: RowBars; start: number; dayW: number }) {
+  const px = (d: number) => (d - start) * dayW;
+  const out: ReactNode[] = bars.segments.map((s) => (
+    <div
+      key={s.kind}
+      className={SEG_CLASS[s.kind]}
+      style={{ left: px(s.start), width: px(s.end) - px(s.start) }}
+      title={`${SEG_TITLE[s.kind]} : ${fmt(fromDayNum(s.start))} – ${fmt(fromDayNum(s.end - 1))}`}
+    />
+  ));
+  const e = bars.ecart;
+  if (e !== undefined) {
     out.push(
-      <span key="ecart" className={'g-ecart ' + cls} style={{ left: rightMost + 6 }} title={ecartDefinitif ? 'Écart définitif' : 'Écart estimé'}>
-        {ecart > 0 ? 'Retard ' : ecart < 0 ? 'Avance ' : ''}
-        {formatEcart(ecart)}
-        {!ecartDefinitif && ' (est.)'}
+      <span key="ecart" className={'g-ecart ' + (e > 0 ? 'late' : e < 0 ? 'early' : 'ok')} style={{ left: px(bars.rightMost) + 6 }} title={bars.ecartDefinitif ? 'Écart définitif' : 'Écart estimé'}>
+        {e > 0 ? 'Retard ' : e < 0 ? 'Avance ' : ''}
+        {formatEcart(e)}
+        {!bars.ecartDefinitif && ' (est.)'}
       </span>
     );
   }
@@ -89,6 +70,7 @@ export function Gantt({ p }: { p: Project }) {
   const [zoom, setZoom] = useState<Zoom>(() => (localStorage.getItem('gantt.zoom') as Zoom) || 'semaine');
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [edit, setEdit] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const labelW = narrow ? 138 : 250;
   const dayW = DAY_W[zoom];
@@ -132,8 +114,8 @@ export function Gantt({ p }: { p: Project }) {
   if (months.length) months[months.length - 1].width = width - months[months.length - 1].left;
 
   const retards = sousBlocsEnRetard(p, auj);
-  const allBlocs = p.blocs.map((b) => analyseBloc(b, auj));
-  const finEstimeeProjet = allBlocs.map((b) => (b.termine ? b.finBarreReelle : b.finEstimee ?? b.finPrevue)).filter(Boolean).sort().pop();
+  const finProjet = finEstimeeProjet(p, auj);
+  const totalOuvertes = p.observations.filter(isOpen).length;
 
   if (!hasPlanning)
     return (
@@ -155,11 +137,17 @@ export function Gantt({ p }: { p: Project }) {
         <span className={'tag ' + (retards.length ? 'late' : 'early')}>
           {retards.length ? `${retards.length} sous-bloc${retards.length > 1 ? 's' : ''} en retard` : 'Aucun retard'}
         </span>
-        {finEstimeeProjet && p.info.dateFinPrevue && (
-          <span className={'tag ' + (finEstimeeProjet > p.info.dateFinPrevue ? 'late' : 'line')}>
-            Fin estimée {fmt(finEstimeeProjet)} (prévue {fmt(p.info.dateFinPrevue)})
+        <a className={'tag ' + (totalOuvertes ? 'late' : 'line')} href={href(`/p/${p.id}/obs?statut=ouvertes`)} style={{ textDecoration: 'none' }}>
+          {totalOuvertes} observation{totalOuvertes > 1 ? 's' : ''} non résolue{totalOuvertes > 1 ? 's' : ''}
+        </a>
+        {finProjet && p.info.dateFinPrevue && (
+          <span className={'tag ' + (finProjet > p.info.dateFinPrevue ? 'late' : 'line')}>
+            Fin estimée {fmt(finProjet)} (prévue {fmt(p.info.dateFinPrevue)})
           </span>
         )}
+        <button className="btn sm" onClick={() => setExporting(true)}>
+          <IconPrint /> Exporter en PDF
+        </button>
       </div>
 
       <div className="gantt" ref={scroller}>
@@ -187,9 +175,8 @@ export function Gantt({ p }: { p: Project }) {
               months.map((m) => <div key={'g' + m.left} className="g-grid" style={{ left: labelW + m.left }} />)}
 
             {p.blocs.map((bloc, bi) => {
-              const ba = allBlocs[bi];
               const isClosed = closed[bloc.id];
-              const openObsBloc = p.observations.filter((o) => o.blocId === bloc.id && isOpen(o)).length;
+              const openObsBloc = openObsCount(p, { blocId: bloc.id });
               return (
                 <div key={bloc.id}>
                   <div className="g-row bloc">
@@ -197,22 +184,16 @@ export function Gantt({ p }: { p: Project }) {
                       <IconCaret className={'caret' + (isClosed ? ' closed' : '')} />
                       <span className="code">{String(bi + 1).padStart(2, '0')}</span>
                       <span className="nm grow" title={bloc.nom}>{bloc.nom}</span>
-                      {openObsBloc > 0 && isClosed && <span className="tag late" title="Observations ouvertes">{openObsBloc}</span>}
+                      {openObsBloc > 0 && isClosed && <span className="tag late" title={`${openObsBloc} observation(s) non résolue(s) dans ce bloc`}>● {openObsBloc}</span>}
                     </div>
                     <div className="g-track" style={{ width }}>
-                      <Bars
-                        x={x} dayW={dayW} auj={auj}
-                        debutPrevu={ba.debutPrevu} finPrevue={ba.finPrevue}
-                        debutReel={ba.debutReel} finReel={ba.finBarreReelle}
-                        finEstimee={ba.finEstimee} termine={ba.termine}
-                        ecart={ba.ecartFin} ecartDefinitif={ba.termine}
-                      />
+                      <Bars bars={blocBars(bloc, auj)} start={dayNum(range.start)} dayW={dayW} />
                     </div>
                   </div>
                   {!isClosed &&
                     bloc.sousBlocs.map((sb, si) => {
                       const a = analyseSousBloc(sb, auj);
-                      const openObs = p.observations.filter((o) => o.sousBlocId === sb.id && isOpen(o)).length;
+                      const openObs = openObsCount(p, { sousBlocId: sb.id });
                       return (
                         <div className="g-row" key={sb.id}>
                           <div className="g-label" style={{ width: labelW, paddingLeft: narrow ? 12 : 30 }} onClick={() => setEdit(sb.id)} title={`${sb.nom} — ${TASK_STATE_LABEL[a.state]}`}>
@@ -221,14 +202,7 @@ export function Gantt({ p }: { p: Project }) {
                             {openObs > 0 && <span className="tag late" title={`${openObs} observation(s) non résolue(s)`}>● {openObs}</span>}
                           </div>
                           <div className="g-track" style={{ width, cursor: 'pointer' }} onClick={() => setEdit(sb.id)}>
-                            <Bars
-                              x={x} dayW={dayW} auj={auj}
-                              debutPrevu={sb.debutPrevu} finPrevue={sb.finPrevue}
-                              debutReel={sb.debutReel} finReel={a.finBarreReelle}
-                              finEstimee={a.finEstimee} termine={a.state === 'termine'}
-                              ecart={a.ecartFin} ecartDefinitif={a.ecartDefinitif}
-                              nonDemarre={a.state === 'retard_demarrage'}
-                            />
+                            <Bars bars={sousBlocBars(sb, auj)} start={dayNum(range.start)} dayW={dayW} />
                           </div>
                         </div>
                       );
@@ -247,9 +221,10 @@ export function Gantt({ p }: { p: Project }) {
         <span><i style={{ background: 'var(--early)' }} /> Terminé en avance</span>
         <span><i style={{ border: '1.5px dashed var(--ink-2)' }} /> Projection</span>
         <span><i style={{ width: 2, height: 14, background: 'var(--late)' }} /> Aujourd’hui</span>
-        <span><span className="tag late">● 2</span> Observations ouvertes</span>
+        <span><span className="tag late">● n</span> n observations non résolues (à faire / en cours) sur la ligne</span>
       </div>
       {edit && <SousBlocModal p={p} sousBlocId={edit} onClose={() => setEdit(null)} />}
+      {exporting && <GanttExportModal p={p} onClose={() => setExporting(false)} />}
     </div>
   );
 }
