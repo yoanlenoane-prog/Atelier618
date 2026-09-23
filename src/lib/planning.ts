@@ -224,3 +224,13 @@ export function findSousBloc(p: Project, id?: string): { bloc: Bloc; sb: SousBlo
   }
   return undefined;
 }
+
+/** Fin probable du chantier : la plus tardive des fins réelles / estimées des blocs. */
+export function finEstimeeProjet(p: Project, auj: ISODate): ISODate | undefined {
+  return p.blocs
+    .map((b) => analyseBloc(b, auj))
+    .map((b) => (b.termine ? b.finBarreReelle : b.finEstimee ?? b.finPrevue))
+    .filter((d): d is ISODate => !!d)
+    .sort()
+    .pop();
+}

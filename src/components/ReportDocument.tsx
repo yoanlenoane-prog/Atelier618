@@ -72,7 +72,7 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
         {p.info.maitreOeuvre && (<><dt>Maître d’œuvre</dt><dd>{p.info.maitreOeuvre}</dd></>)}
         {cr.participants && (<><dt>Participants</dt><dd>{cr.participants}</dd></>)}
         {cr.meteo && (<><dt>Météo</dt><dd>{cr.meteo}</dd></>)}
-        <dt>Avancement</dt><dd>{avancementProjet(p, cr.date)} %{p.info.dateFinPrevue && ` — fin prévue le ${fmt(p.info.dateFinPrevue)}`}</dd>
+        <dt>Avancement estimé</dt><dd>{avancementProjet(p, cr.date)} %{p.info.dateFinPrevue && ` — fin prévue le ${fmt(p.info.dateFinPrevue)}`}</dd>
         {cr.prochaineVisite && (<><dt>Prochaine visite</dt><dd>{fmtLong(cr.prochaineVisite)}</dd></>)}
       </dl>
 
@@ -83,7 +83,7 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
         </>
       )}
 
-      {retards.length > 0 && (
+      {cr.inclurePlanning !== false && retards.length > 0 && (
         <>
           <h2>Planning — points de vigilance</h2>
           <table>
@@ -189,7 +189,7 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
 
       <div className="r-foot">
         <span>{p.info.nom} — CR n°{String(cr.numero).padStart(3, '0')} du {fmt(cr.date)}</span>
-        <span>Sauf observation écrite sous 8 jours, le présent compte rendu est réputé accepté.</span>
+        <span>{p.info.architecte || 'Atelier 618'}</span>
       </div>
     </article>
   );

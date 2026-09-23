@@ -97,6 +97,8 @@ export interface CompteRendu {
   observationIds: string[];
   mode: ReportMode;
   inclurePlans: boolean;
+  /** Afficher le tableau « Planning — points de vigilance » (oui par défaut). */
+  inclurePlanning?: boolean;
   prochaineVisite?: ISODate;
   updatedAt: number;
 }

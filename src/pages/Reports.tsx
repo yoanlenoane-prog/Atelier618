@@ -28,6 +28,7 @@ export function Reports({ p }: { p: Project }) {
         observationIds: obsIds,
         mode: last?.mode || 'bloc',
         inclurePlans: last?.inclurePlans ?? true,
+        inclurePlanning: last?.inclurePlanning ?? true,
         updatedAt: Date.now(),
       });
     });

@@ -1,12 +1,14 @@
 /** Conversion d'une page de PDF en image (pour afficher un plan PDF et y poser des pastilles). */
+// Version « legacy » de pdf.js : elle inclut les compléments nécessaires aux navigateurs
+// plus anciens (Safari sur iPhone notamment).
 export async function pdfPageCount(file: Blob): Promise<number> {
   const pdf = await load(file);
   return pdf.numPages;
 }
 
 async function load(file: Blob) {
-  const pdfjs = await import('pdfjs-dist');
-  const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const worker = await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url');
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   return pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
 }

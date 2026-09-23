@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import { href } from '../router';
-import { getClientId, setClientId, wasConnected } from '../lib/google';
-import { toast } from '../components/ui';
+import { getAuthMode, getClientId, isStandalone, redirectUri, setAuthMode, setClientId, wasConnected, type AuthMode } from '../lib/google';
+import { Seg, toast } from '../components/ui';
 import { IconCloud, IconSync } from '../components/Icons';
 
 export function Settings() {
   const store = useStore();
   const [clientId, setId] = useState(getClientId());
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<AuthMode>(getAuthMode());
   const connected = wasConnected() && store.sync.status !== 'local';
   const origin = location.origin + location.pathname.replace(/index\.html$/, '');
 
@@ -72,7 +73,25 @@ export function Settings() {
             Enregistrer
           </button>
         </div>
-        <p className="tiny muted" style={{ marginTop: 8 }}>Adresse de l’application : {origin}</p>
+        <p className="tiny muted" style={{ marginTop: 8 }}>
+          URI de redirection autorisé à déclarer : <code>{redirectUri()}</code>
+        </p>
+        <p className="tiny muted">Adresse de l’application : {origin}</p>
+        <div className="stack" style={{ gap: 6, marginTop: 10 }}>
+          <span className="eyebrow">Mode de connexion</span>
+          <Seg
+            value={mode}
+            onChange={(m) => {
+              setMode(m);
+              setAuthMode(m);
+            }}
+            options={[['auto', 'Automatique'], ['popup', 'Fenêtre'], ['redirect', 'Redirection']]}
+          />
+          <span className="tiny muted">
+            Automatique : fenêtre Google sur ordinateur, redirection dans l’application installée sur le téléphone
+            {isStandalone() ? ' (c’est le cas ici)' : ''}. Choisissez « Redirection » si la fenêtre de connexion ne s’ouvre pas.
+          </span>
+        </div>
       </div>
 
       <div className="card">

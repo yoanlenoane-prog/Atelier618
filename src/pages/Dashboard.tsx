@@ -55,7 +55,7 @@ export function Dashboard({ p }: { p: Project }) {
       <div className="grid c4">
         <div className="card kpi">
           <div className="v">{pct} %</div>
-          <div className="l eyebrow">Avancement</div>
+          <div className="l eyebrow">Avancement estimé</div>
           <div style={{ marginTop: 10 }}><Progress value={pct} /></div>
         </div>
         <div className="card kpi">

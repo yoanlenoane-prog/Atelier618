@@ -6,6 +6,11 @@ import '@fontsource/instrument-serif/400-italic.css';
 import './styles.css';
 import { StoreProvider } from './store';
 import { App } from './App';
+import { handleRedirectReturn } from './lib/google';
+
+// Retour de la page de connexion Google (connexion par redirection)
+const authError = handleRedirectReturn();
+if (authError) setTimeout(() => alert(authError), 500);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -57,7 +57,7 @@ export function Home() {
               </div>
               <div className="row between" style={{ alignItems: 'flex-end' }}>
                 <div>
-                  <div className="eyebrow">Avancement</div>
+                  <div className="eyebrow">Avancement estimé</div>
                   <div className="pct">{pct} %</div>
                 </div>
                 <div className="stack" style={{ gap: 4, alignItems: 'flex-end' }}>
