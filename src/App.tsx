@@ -21,6 +21,7 @@ import { ReportEdit } from './pages/ReportEdit';
 import { ReportPrint } from './pages/ReportPrint';
 import { Documents } from './pages/Documents';
 import { Search } from './pages/Search';
+import { Overview } from './components/Overview';
 import { Entreprises, EntreprisePrint } from './pages/Entreprises';
 
 const PROJECT_NAV: { key: string; label: string; short: string; icon: (p: any) => ReactNode; mobile?: boolean }[] = [
@@ -86,6 +87,8 @@ export function App() {
         default: page = <Dashboard p={project} />;
       }
     }
+  } else if (section === 'ensemble') {
+    page = <Overview projects={store.projects} />; title = 'Vue d’ensemble'; back = '/';
   } else if (section === 'reglages') {
     page = <Settings />; title = 'Réglages'; back = '/';
   } else if (section === 'aide') {
@@ -106,6 +109,7 @@ export function App() {
         </a>
         <nav className="nav">
           <a href={href('/')} className={isHome ? 'on' : ''}><IconHome /> Mes projets</a>
+          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''}><IconDash /> Vue d’ensemble</a>
         </nav>
         {project && (
           <>
@@ -162,9 +166,10 @@ export function App() {
           )}
         </>
       )}
-      {isHome && (
+      {(isHome || section === 'ensemble') && (
         <nav className="bottomnav no-print">
-          <a href={href('/')} className="on"><IconHome /> Projets</a>
+          <a href={href('/')} className={isHome ? 'on' : ''}><IconHome /> Projets</a>
+          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''}><IconDash /> Ensemble</a>
           <a href={href('/aide')}><IconHelp /> Notice</a>
           <a href={href('/reglages')}><IconSettings /> Réglages</a>
         </nav>
