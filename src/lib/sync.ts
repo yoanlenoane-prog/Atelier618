@@ -6,14 +6,15 @@
  *       Projet/projet.json      ← toutes les données de l'application
  *       Plans/                  ← plans importés
  *       Photos/P-012/…          ← photos rangées par pastille
- *       Documents/
+ *       Documents/<dossiers créés dans l'application>/…
  *       Comptes rendus/
  */
-import type { FileRef, Project } from '../types';
+import type { DocumentFile, FileRef, Project } from '../types';
 import * as drive from './drive';
 import { getBlob } from './files';
 import { idbGet, idbSet } from './idb';
 import { pastilleLabel } from './ids';
+import { DOSSIER_CR, dossierDe } from './dossiers';
 import { contentSignature, mergeProjects } from './merge';
 
 const ROOT_KEY = 'atelier618.rootFolder';
@@ -67,8 +68,9 @@ export async function isDirty(p: Project): Promise<boolean> {
 
 interface RefCtx {
   ref: FileRef;
-  kind: 'plan' | 'photo' | 'document' | 'cr';
+  kind: 'plan' | 'photo' | 'document';
   numero?: number;
+  doc?: DocumentFile;
 }
 
 function forEachRef(p: Project, cb: (c: RefCtx) => void) {
@@ -76,8 +78,107 @@ function forEachRef(p: Project, cb: (c: RefCtx) => void) {
     cb({ ref: pl.image, kind: 'plan' });
     if (pl.source) cb({ ref: pl.source, kind: 'plan' });
   }
-  for (const o of p.observations) for (const c of o.contenu) if (c.type === 'photo') cb({ ref: c.file, kind: 'photo', numero: o.numero });
-  for (const d of p.documents) cb({ ref: d.file, kind: d.categorie === 'Compte rendu' ? 'cr' : 'document' });
+  for (const o of p.observations)
+    for (const c of o.contenu)
+      if (c.type === 'photo') {
+        cb({ ref: c.file, kind: 'photo', numero: o.numero });
+        if (c.original) cb({ ref: c.original, kind: 'photo', numero: o.numero });
+      }
+  for (const d of p.documents) {
+    cb({ ref: d.file, kind: 'document', doc: d });
+    if (d.original) cb({ ref: d.original, kind: 'document', doc: d });
+  }
+}
+
+/** Crée / renomme dans Drive les dossiers de documents, et met à la corbeille ceux supprimés. */
+async function syncDossiers(host: SyncHost, p: Project): Promise<Project> {
+  const todo = [...(p.dossiers || [])];
+  // Les parents d'abord
+  const depth = (id?: string, n = 0): number => {
+    const d = id && todo.find((x) => x.id === id);
+    return d && n < 20 ? depth(d.parentId, n + 1) : n;
+  };
+  todo.sort((a, b) => depth(a.parentId) - depth(b.parentId));
+  for (const d0 of todo) {
+    const cur = host.get(p.id)!;
+    const d = cur.dossiers?.find((x) => x.id === d0.id);
+    if (!d) continue;
+    const parentDossier = d.parentId ? cur.dossiers?.find((x) => x.id === d.parentId) : undefined;
+    const parent = parentDossier ? parentDossier.driveId : cur.drive!.documents;
+    if (!parent) continue;
+    const nom = d.nom.replace(/[\\/]/g, '-').trim() || 'Sans nom';
+    if (d.driveId) {
+      const f = await drive.getFile(d.driveId);
+      if (f && !f.trashed) {
+        // Dossier remonté d'un niveau (son parent a été supprimé dans l'application)
+        const ancien = f.parents?.[0];
+        if (ancien && ancien !== parent) {
+          host.onProgress('Rangement des dossiers…');
+          await drive.moveFile(d.driveId, parent, ancien);
+        }
+        if (d.driveNom !== nom) {
+          host.onProgress('Renommage d’un dossier…');
+          await drive.updateMeta(d.driveId, { name: nom });
+          await host.patch(p.id, (x) => { const y = x.dossiers?.find((z) => z.id === d.id); if (y) y.driveNom = nom; });
+        }
+        continue;
+      }
+    }
+    host.onProgress('Création des dossiers…');
+    const id = await drive.ensureFolder(nom, parent);
+    await host.patch(p.id, (x) => {
+      const y = x.dossiers?.find((z) => z.id === d.id);
+      if (y) Object.assign(y, { driveId: id, driveNom: nom });
+    });
+  }
+  return host.get(p.id)!;
+}
+
+/** Dossier Drive attendu pour un document, selon son dossier dans l'application. */
+function parentDocument(p: Project, d: DocumentFile): string | undefined {
+  const f = p.drive!;
+  const dossier = dossierDe(d);
+  if (dossier === DOSSIER_CR) return f.cr;
+  if (!dossier) return f.documents;
+  return p.dossiers?.find((x) => x.id === dossier)?.driveId;
+}
+
+/** Range dans Drive les documents déplacés d'un dossier à l'autre dans l'application. */
+async function moveDocuments(host: SyncHost, p: Project): Promise<Project> {
+  for (const d0 of p.documents) {
+    const cur = host.get(p.id)!;
+    const d = cur.documents.find((x) => x.id === d0.id);
+    if (!d) continue;
+    const to = parentDocument(cur, d);
+    if (!to) continue;
+    for (const ref of [d.file, d.original]) {
+      if (!ref?.driveId) continue;
+      // Fichiers envoyés avant les dossiers : ils sont dans « Documents » ou « Comptes rendus »
+      const from = ref.driveParent ?? (d.categorie === 'Compte rendu' ? cur.drive!.cr : cur.drive!.documents);
+      if (from === to) {
+        if (!ref.driveParent) await host.patch(p.id, (x) => setDriveParent(x, ref.driveId!, to));
+        continue;
+      }
+      host.onProgress('Rangement des documents…');
+      await drive.moveFile(ref.driveId, to, from);
+      await host.patch(p.id, (x) => setDriveParent(x, ref.driveId!, to));
+    }
+  }
+  // Dossiers supprimés : leur contenu a été déplacé ci-dessus, on les met à la corbeille
+  const cur = host.get(p.id)!;
+  for (const id of cur.drive?.dossiersSupprimes || []) {
+    const f = await drive.getFile(id);
+    if (f && !f.trashed) {
+      const reste = await drive.listFiles(`'${id}' in parents and trashed=false`);
+      if (reste.length === 0) await drive.trash(id);
+    }
+  }
+  if (cur.drive?.dossiersSupprimes?.length) await host.patch(p.id, (x) => { x.drive!.dossiersSupprimes = []; });
+  return host.get(p.id)!;
+}
+
+function setDriveParent(p: Project, driveId: string, parent: string) {
+  for (const d of p.documents) for (const ref of [d.file, d.original]) if (ref?.driveId === driveId) ref.driveParent = parent;
 }
 
 async function ensureProjectFolders(host: SyncHost, p: Project, root: string): Promise<Project> {
@@ -123,7 +224,7 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
     const f = cur.drive!;
     let parent = f.documents;
     if (c.kind === 'plan') parent = f.plans;
-    if (c.kind === 'cr') parent = f.cr;
+    if (c.kind === 'document' && c.doc) parent = parentDocument(cur, c.doc) ?? f.documents;
     if (c.kind === 'photo') {
       const key = pastilleLabel(c.numero ?? 0);
       parent = f.photosPastilles?.[key] ?? (await drive.ensureFolder(key, f.photos));
@@ -136,7 +237,10 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
     await idbSet('blobs', 'd:' + up.id, blob);
     await host.patch(p.id, (d) =>
       forEachRef(d, (x) => {
-        if (x.ref.localId === c.ref.localId) x.ref.driveId = up.id;
+        if (x.ref.localId === c.ref.localId) {
+          x.ref.driveId = up.id;
+          if (x.kind === 'document') x.ref.driveParent = parent;
+        }
       })
     );
   }
@@ -146,7 +250,9 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
 async function syncOne(host: SyncHost, id: string, root: string, remoteJson?: drive.DriveFile) {
   let p = host.get(id)!;
   p = await ensureProjectFolders(host, p, root);
+  p = await syncDossiers(host, p);
   p = await uploadPending(host, p);
+  p = await moveDocuments(host, p);
 
   const m = await meta(id);
   const jsonFile = remoteJson ?? (m.jsonId ? (await drive.getFile(m.jsonId)) ?? undefined : undefined);

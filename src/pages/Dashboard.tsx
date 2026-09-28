@@ -6,7 +6,7 @@ import { analyseSousBloc, avancementProjet, codeSousBloc, formatEcart, isOpen, s
 import { PROJECT_STATUS_LABEL } from '../lib/labels';
 import { FileImage } from '../components/FileImage';
 import { Progress, useToday } from '../components/ui';
-import { IconDocs, IconGantt, IconInfo, IconObs, IconPlan, IconReport, IconSearch, IconStructure } from '../components/Icons';
+import { IconCompany, IconDocs, IconGantt, IconInfo, IconObs, IconPlan, IconReport, IconSearch, IconStructure } from '../components/Icons';
 
 export function Dashboard({ p }: { p: Project }) {
   const auj = useToday();
@@ -37,6 +37,7 @@ export function Dashboard({ p }: { p: Project }) {
     { to: 'plans', label: 'Plans', icon: IconPlan },
     { to: 'obs', label: 'Observations', icon: IconObs },
     { to: 'cr', label: 'Comptes rendus', icon: IconReport },
+    { to: 'entreprises', label: 'Entreprises', icon: IconCompany },
     { to: 'docs', label: 'Documents', icon: IconDocs },
     { to: 'structure', label: 'Blocs & sous-blocs', icon: IconStructure },
     { to: 'infos', label: 'Informations', icon: IconInfo },

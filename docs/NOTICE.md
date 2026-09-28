@@ -102,7 +102,7 @@ Astuces :
 
 1. Cliquez sur **Exporter en PDF** (en haut du Gantt).
 2. Choisissez **Blocs et sous-blocs** ou **Blocs seuls**.
-3. Cliquez sur **Créer le PDF** : le fichier est téléchargé et, si la case est cochée, une copie est rangée dans **Documents** (catégorie Planning), donc dans Google Drive.
+3. Cliquez sur **Créer le PDF** : le fichier est téléchargé et, si la case est cochée, une copie est rangée dans **Documents** (à la racine), donc dans Google Drive.
 
 Le PDF est **à l’horizontale (paysage)** et sa **taille s’adapte automatiquement à la durée du chantier** : A4 pour un chantier de quelques mois, puis A3, A2… pour les chantiers plus longs, afin que tout le planning tienne sur la largeur de la page. La fenêtre d’export indique le format retenu avant de créer le fichier. S’il y a beaucoup de lignes, le Gantt continue sur une deuxième page.
 
@@ -161,6 +161,10 @@ La liste peut être affichée **par pastille** ou **par bloc / sous-bloc**, et f
 
 Les photos sont rangées dans Drive dans `Photos / P-012 /`. Elles sont automatiquement allégées (≈ 2000 px) pour économiser l’espace.
 
+### Annoter une photo
+
+Sous chaque photo, touchez **Annoter** : dessinez des **flèches**, **cercles**, **cadres**, traits **à main levée** ou ajoutez du **texte**, dans la couleur de votre choix. **Annuler** retire la dernière forme. Après **Enregistrer**, la photo annotée remplace l’image dans l’observation et le compte rendu ; la photo d’origine est conservée : **Modifier les annotations** permet de les reprendre à tout moment, et **Tout effacer** puis **Enregistrer** rétablit l’original. Les photos de **Documents** s’annotent de la même façon (bouton crayon).
+
 ## 7. Sur le chantier, avec le téléphone
 
 Créer une observation en quelques secondes :
@@ -197,11 +201,15 @@ Le PDF contient : en-tête, participants, météo, avancement estimé, retards d
 
 Tous les comptes rendus restent accessibles dans la liste ; depuis une observation, vous voyez dans quels CR elle a été citée.
 
-## 9. Tableau de bord et documents
+## 9. Tableau de bord, entreprises et documents
 
-Le **Tableau de bord** résume le projet : avancement estimé, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
+La page d’accueil **Mes projets** commence par une **vue d’ensemble** de tous les chantiers actifs (hors projets terminés ou suspendus) : observations ouvertes, **échéances dépassées**, **lots en retard** et tout ce qui est prévu **dans les 14 prochains jours** (débuts et fins de lots, échéances, prochaines visites). Chaque ligne ouvre directement l’élément concerné.
 
-Le menu **Documents** permet d’ajouter devis, contrats, CR signés… Ils sont envoyés dans le dossier **Documents** (ou **Comptes rendus**) du projet sur Drive. L’icône nuage devient verte une fois le fichier envoyé.
+Le **Tableau de bord** d’un projet résume le projet : avancement estimé, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
+
+Le menu **Entreprises** présente une fiche par entreprise (celles des Informations et celles citées dans les observations ou le planning) : observations ouvertes, échéances dépassées, planning de ses lots, observations levées. **Imprimer / PDF (relance)** produit une fiche à envoyer à l’entreprise.
+
+Le menu **Documents** permet d’ajouter devis, contrats, CR signés, photos… Créez vos propres **dossiers** (et sous-dossiers) avec **Nouveau dossier**, puis ajoutez les fichiers directement dedans ; le bouton **Déplacer** range un fichier ailleurs. Les dossiers sont recréés à l’identique dans le dossier **Documents** du projet sur Drive, et les fichiers y sont déplacés lors de la synchronisation. Renommer un dossier le renomme aussi dans Drive ; le supprimer remonte son contenu d’un niveau (rien n’est effacé). Le dossier **Comptes rendus** reçoit les PDF joints depuis un compte rendu. Les photos s’affichent en vignettes, regroupées par date. L’icône nuage devient verte une fois le fichier envoyé.
 
 ## 10. Recherche
 
@@ -236,7 +244,7 @@ Dans votre Google Drive :
 - `ChantierApp / 01 - Maison Dupont / Projet / projet.json` : les données de l’application (ne pas modifier à la main) ;
 - `Plans` : les plans importés ;
 - `Photos / P-001, P-002…` : les photos, rangées par pastille ;
-- `Documents` et `Comptes rendus` : vos fichiers.
+- `Documents / vos dossiers…` et `Comptes rendus` : vos fichiers, rangés comme dans l’application.
 
 L’espace utilisé est celui de votre Drive : si celui-ci est plein, les nouveaux fichiers ne pourront plus être envoyés (un message l’indique).
 

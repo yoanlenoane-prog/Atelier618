@@ -16,6 +16,21 @@ export interface FileRef {
   name: string;
   mime: string;
   size?: number;
+  /** Dossier Drive où le fichier a été placé (pour le déplacer si on le range ailleurs). */
+  driveParent?: string;
+}
+
+/** Forme dessinée sur une photo (coordonnées en pixels de l'image d'origine). */
+export type Annotation =
+  | { type: 'fleche' | 'cercle' | 'rect'; couleur: string; x1: number; y1: number; x2: number; y2: number }
+  | { type: 'trait'; couleur: string; points: [number, number][] }
+  | { type: 'texte'; couleur: string; x: number; y: number; texte: string };
+
+/** Champs communs aux photos annotables : l'image affichée est l'original + les annotations. */
+export interface Annotable {
+  /** Photo d'origine, sans annotations (présente seulement si la photo a été annotée). */
+  original?: FileRef;
+  annotations?: Annotation[];
 }
 
 export type ProjectStatus = 'etude' | 'preparation' | 'en_cours' | 'reception' | 'termine' | 'suspendu';
@@ -54,7 +69,7 @@ export type ObsStatus = 'a_faire' | 'en_cours' | 'termine' | 'sans_suite';
 
 export type ContentItem =
   | { id: string; type: 'texte'; texte: string }
-  | { id: string; type: 'photo'; file: FileRef; legende?: string };
+  | ({ id: string; type: 'photo'; file: FileRef; legende?: string } & Annotable);
 
 export interface HistoryEntry {
   id: string;
@@ -116,12 +131,27 @@ export interface CompteRendu {
   updatedAt: number;
 }
 
-export interface DocumentFile {
+export interface DocumentFile extends Annotable {
   id: string;
   nom: string;
   file: FileRef;
   date: ISODate;
+  /** Dossier de rangement (absent = racine « Documents »). */
+  dossierId?: string;
+  /** Ancienne catégorie (avant les dossiers) ; « Compte rendu » = dossier Comptes rendus. */
   categorie?: string;
+  updatedAt: number;
+}
+
+/** Dossier de documents créé par l'utilisateur (recréé à l'identique dans Google Drive). */
+export interface Dossier {
+  id: string;
+  nom: string;
+  /** Dossier parent (absent = racine « Documents »). */
+  parentId?: string;
+  /** Dossier correspondant dans Drive, et nom sous lequel il y a été créé / renommé. */
+  driveId?: string;
+  driveNom?: string;
   updatedAt: number;
 }
 
@@ -142,6 +172,8 @@ export interface DriveFolders {
   cr: string;
   /** Sous-dossiers Photos/P-012 déjà créés : numéro → id. */
   photosPastilles?: Record<string, string>;
+  /** Dossiers Drive de dossiers supprimés dans l'application, à mettre à la corbeille. */
+  dossiersSupprimes?: string[];
 }
 
 export interface ProjectInfo {
@@ -168,6 +200,8 @@ export interface Project {
   observations: Observation[];
   comptesRendus: CompteRendu[];
   documents: DocumentFile[];
+  /** Dossiers de rangement des documents (absent sur les anciens projets). */
+  dossiers?: Dossier[];
   /** Dernier numéro de pastille attribué. */
   compteurPastille: number;
 
@@ -181,4 +215,4 @@ export interface Project {
   drive?: DriveFolders;
 }
 
-export type Collection = 'plans' | 'observations' | 'comptesRendus' | 'documents';
+export type Collection = 'plans' | 'observations' | 'comptesRendus' | 'documents' | 'dossiers';

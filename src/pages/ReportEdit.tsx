@@ -5,6 +5,7 @@ import { href, navigate } from '../router';
 import { pastilleLabel, uid } from '../lib/ids';
 import { fmt, today } from '../lib/dates';
 import { storeLocal } from '../lib/files';
+import { DOSSIER_CR } from '../lib/dossiers';
 import { CR_CHANTIER, OBS_STATUS_LABEL, REPORT_TYPE, reunionCandidats } from '../lib/labels';
 import { isOpen } from '../lib/planning';
 import { Empty, Seg, toast, useToday } from '../components/ui';
@@ -66,7 +67,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
   const attachPdf = async (f: File) => {
     const ref = await storeLocal(f, f.name);
     await store.update(p.id, (d) => {
-      d.documents.push({ id: uid('d'), nom: f.name, file: ref, date: today(), categorie: 'Compte rendu', updatedAt: Date.now() });
+      d.documents.push({ id: uid('d'), nom: f.name, file: ref, date: today(), dossierId: DOSSIER_CR, updatedAt: Date.now() });
     });
     toast('PDF ajouté — il sera envoyé dans « Comptes rendus » sur Drive');
   };

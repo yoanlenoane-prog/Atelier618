@@ -109,6 +109,14 @@ export async function updateMeta(id: string, meta: Record<string, unknown>): Pro
   return res.json();
 }
 
+/** Déplace un fichier ou un dossier d'un dossier parent à un autre. */
+export async function moveFile(id: string, to: string, from?: string): Promise<DriveFile> {
+  const params = new URLSearchParams({ addParents: to, fields: FIELDS });
+  if (from) params.set('removeParents', from);
+  const res = await call(`${API}/files/${id}?${params}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  return res.json();
+}
+
 export async function getFile(id: string): Promise<(DriveFile & { trashed?: boolean }) | null> {
   try {
     return await (await call(`${API}/files/${id}?fields=${FIELDS},trashed`)).json();

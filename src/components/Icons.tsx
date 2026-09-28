@@ -36,3 +36,4 @@ export const IconZoomIn = base(<><circle cx="11" cy="11" r="7" /><path d="m20 20
 export const IconZoomOut = base(<><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4M8 11h6" /></>);
 export const IconText = base(<path d="M5 6h14M5 12h14M5 18h9" />);
 export const IconCloud = base(<path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 8z" />);
+export const IconCompany = base(<><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16" /><path d="M14 9h5a1 1 0 0 1 1 1v11M3 21h18M8 8h2M8 12h2M8 16h2M17 13h.01M17 17h.01" /></>);

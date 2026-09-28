@@ -9,6 +9,7 @@ import { createSample } from '../lib/sample';
 import { Modal, Progress, toast, useToday } from '../components/ui';
 import { IconPlus } from '../components/Icons';
 import { SyncPill } from '../components/SyncPill';
+import { Overview } from '../components/Overview';
 import { InfoFields } from './ProjectInfo';
 import type { ProjectInfo } from '../types';
 
@@ -34,6 +35,8 @@ export function Home() {
           </button>
         </div>
       </div>
+
+      <Overview projects={store.projects} auj={auj} />
 
       <div className="section-title">
         <h2>Mes projets</h2>

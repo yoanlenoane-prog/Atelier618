@@ -5,7 +5,7 @@
  */
 import type { Collection, Project } from '../types';
 
-const COLLECTIONS: Collection[] = ['plans', 'observations', 'comptesRendus', 'documents'];
+const COLLECTIONS: Collection[] = ['plans', 'observations', 'comptesRendus', 'documents', 'dossiers'];
 
 type WithId = { id: string; updatedAt: number };
 
@@ -50,7 +50,9 @@ export function mergeProjects(a: Project, b: Project): Project {
     supprimes,
     updatedAt: Math.max(a.updatedAt, b.updatedAt),
     drive: a.drive || b.drive
-      ? { ...(b.drive || a.drive)!, ...(a.drive || {}), photosPastilles: { ...(b.drive?.photosPastilles || {}), ...(a.drive?.photosPastilles || {}) } }
+      ? { ...(b.drive || a.drive)!, ...(a.drive || {}), photosPastilles: { ...(b.drive?.photosPastilles || {}), ...(a.drive?.photosPastilles || {}) },
+          dossiersSupprimes: Array.from(new Set([...(a.drive?.dossiersSupprimes || []), ...(b.drive?.dossiersSupprimes || [])])),
+        }
       : undefined,
   };
   for (const c of COLLECTIONS) (out as any)[c] = mergeList((a as any)[c] || [], (b as any)[c] || [], supprimes);
