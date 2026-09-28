@@ -35,7 +35,7 @@ export function searchProject(p: Project, q: string): Hit[] {
       const o = p.observations.find((x) => x.id === id);
       return o && ((num && Number(num) === o.numero) || has(o.titre));
     });
-    if (has(c.participants, c.notesGenerales, c.meteo, ...Object.values(c.rubriques), `cr ${c.numero}`) || dateHit(c.date) || obsMatch || t === `cr${c.numero}`)
+    if (has(c.participants, ...(c.concernes || []), c.notesGenerales, c.meteo, ...Object.values(c.rubriques), `cr ${c.numero}`) || dateHit(c.date) || obsMatch || t === `cr${c.numero}`)
       hits.push({ kind: 'Compte rendu', title: `CR n°${String(c.numero).padStart(3, '0')}`, sub: fmt(c.date), link: `/p/${p.id}/cr/${c.id}` });
   }
   for (const b of p.blocs) {

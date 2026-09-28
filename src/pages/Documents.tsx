@@ -6,9 +6,13 @@ import { fmt, today } from '../lib/dates';
 import { getBlob, humanSize, storeLocal } from '../lib/files';
 import { driveLink, folderLink } from '../lib/drive';
 import { Empty, toast } from '../components/ui';
+import { FileImage } from '../components/FileImage';
 import { IconCloud, IconExternal, IconPlus, IconTrash } from '../components/Icons';
 
 const CATEGORIES = ['Document', 'Compte rendu', 'Devis', 'Contrat', 'Planning', 'Photo', 'Autre'];
+
+/** Toute image est rangée avec les photos, quelle que soit la catégorie choisie. */
+const isPhoto = (d: DocumentFile) => d.categorie === 'Photo' || (d.file.mime || '').startsWith('image/');
 
 async function openDoc(d: DocumentFile) {
   const blob = await getBlob(d.file);
@@ -25,17 +29,31 @@ export function Documents({ p }: { p: Project }) {
   const input = useRef<HTMLInputElement>(null);
   const [cat, setCat] = useState('Document');
   const [filter, setFilter] = useState('');
-  const docs = [...p.documents].sort((a, b) => (a.date < b.date ? 1 : -1)).filter((d) => !filter || d.categorie === filter);
+  const all = [...p.documents].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.updatedAt - a.updatedAt));
+  const photos = all.filter((d) => isPhoto(d) && (!filter || filter === 'Photo'));
+  const docs = all.filter((d) => !isPhoto(d) && (!filter || d.categorie === filter));
+  // Photos rangées par date
+  const photosParDate: [string, DocumentFile[]][] = [];
+  for (const d of photos) {
+    const g = photosParDate.find(([date]) => date === d.date);
+    if (g) g[1].push(d);
+    else photosParDate.push([d.date, [d]]);
+  }
 
   const add = async (files: File[]) => {
     for (const f of files) {
       const ref = await storeLocal(f, f.name);
+      // Les images sont automatiquement rangées avec les photos
+      const categorie = ref.mime.startsWith('image/') ? 'Photo' : cat;
       await store.update(p.id, (d) => {
-        d.documents.push({ id: uid('d'), nom: f.name, file: ref, date: today(), categorie: cat, updatedAt: Date.now() });
+        d.documents.push({ id: uid('d'), nom: f.name, file: ref, date: today(), categorie, updatedAt: Date.now() });
       });
     }
     toast(`${files.length} document(s) ajouté(s)`);
   };
+  const remove = (d: DocumentFile) =>
+    window.confirm(`Retirer « ${d.nom} » de l’application ?\n(Le fichier reste dans Google Drive.)`) &&
+    store.update(p.id, (x) => { x.documents = x.documents.filter((y) => y.id !== d.id); });
 
   return (
     <div className="stack lg">
@@ -60,13 +78,38 @@ export function Documents({ p }: { p: Project }) {
 
       <div className="row wrap">
         <button className={'btn sm ' + (filter ? 'ghost' : '')} onClick={() => setFilter('')}>Tous</button>
-        {CATEGORIES.filter((c) => p.documents.some((d) => d.categorie === c)).map((c) => (
+        {CATEGORIES.filter((c) => p.documents.some((d) => (c === 'Photo' ? isPhoto(d) : !isPhoto(d) && d.categorie === c))).map((c) => (
           <button key={c} className={'btn sm ' + (filter === c ? '' : 'ghost')} onClick={() => setFilter(c)}>{c}</button>
         ))}
       </div>
 
+      {photos.length > 0 && (
+        <div className="card">
+          <h2>Photos ({photos.length})</h2>
+          <div className="stack">
+            {photosParDate.map(([date, list]) => (
+              <div key={date} className="stack" style={{ gap: 6 }}>
+                <div className="tiny muted">{fmt(date)}</div>
+                <div className="thumbs doc-thumbs">
+                  {list.map((d) => (
+                    <div key={d.id} className="doc-thumb">
+                      <button className="thumb" title={d.nom} onClick={() => openDoc(d)}>
+                        <FileImage file={d.file} alt={d.nom} loading="lazy" />
+                      </button>
+                      <button className="btn danger sm icon doc-thumb-del" aria-label="Retirer" onClick={() => remove(d)}>
+                        <IconTrash />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {docs.length === 0 ? (
-        <Empty title="Aucun document"><p>Ajoutez devis, contrats, CR signés, notices…</p></Empty>
+        photos.length === 0 && <Empty title="Aucun document"><p>Ajoutez devis, contrats, CR signés, notices, photos…</p></Empty>
       ) : (
         <div className="card" style={{ padding: '4px 16px' }}>
           <div className="list">
@@ -79,11 +122,7 @@ export function Documents({ p }: { p: Project }) {
                 <span title={d.file.driveId ? 'Enregistré dans Drive' : 'En attente d’envoi vers Drive'} style={{ color: d.file.driveId ? 'var(--early)' : 'var(--muted)' }}>
                   <IconCloud width={18} />
                 </span>
-                <button
-                  className="btn danger sm icon"
-                  aria-label="Retirer"
-                  onClick={() => window.confirm(`Retirer « ${d.nom} » de l’application ?\n(Le fichier reste dans Google Drive.)`) && store.update(p.id, (x) => { x.documents = x.documents.filter((y) => y.id !== d.id); })}
-                >
+                <button className="btn danger sm icon" aria-label="Retirer" onClick={() => remove(d)}>
                   <IconTrash />
                 </button>
               </div>
