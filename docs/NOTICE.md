@@ -163,7 +163,7 @@ Les photos sont rangées dans Drive dans `Photos / P-012 /`. Elles sont automati
 
 ### Annoter une photo
 
-Sous chaque photo, touchez **Annoter** : dessinez des **flèches**, **cercles**, **cadres**, traits **à main levée** ou ajoutez du **texte**, dans la couleur de votre choix. **Annuler** retire la dernière forme. Après **Enregistrer**, la photo annotée remplace l’image dans l’observation et le compte rendu ; la photo d’origine est conservée : **Modifier les annotations** permet de les reprendre à tout moment, et **Tout effacer** puis **Enregistrer** rétablit l’original. Les photos de **Documents** s’annotent de la même façon (bouton crayon).
+Touchez le **crayon** sur la photo (ou **Annoter** sous la photo, ou dans la photo agrandie) — y compris depuis une pastille ouverte sur le plan : dessinez des **flèches**, **cercles**, **cadres**, traits **à main levée** ou ajoutez du **texte**, dans la couleur de votre choix. **Annuler** retire la dernière forme. Après **Enregistrer**, la photo annotée remplace l’image dans l’observation et le compte rendu ; la photo d’origine est conservée : **Modifier les annotations** permet de les reprendre à tout moment, et **Tout effacer** puis **Enregistrer** rétablit l’original. Les photos de **Documents** s’annotent de la même façon (bouton crayon).
 
 ## 7. Sur le chantier, avec le téléphone
 
@@ -244,6 +244,7 @@ Dans votre Google Drive :
 - `ChantierApp / 01 - Maison Dupont / Projet / projet.json` : les données de l’application (ne pas modifier à la main) ;
 - `Plans` : les plans importés ;
 - `Photos / P-001, P-002…` : les photos, rangées par pastille ;
+- `Photos / Photos` : les photos ajoutées dans **Documents** (raccourcis vers les fichiers rangés dans vos dossiers de documents : même photo, sans espace occupé en double) ;
 - `Documents / vos dossiers…` et `Comptes rendus` : vos fichiers, rangés comme dans l’application.
 
 L’espace utilisé est celui de votre Drive : si celui-ci est plein, les nouveaux fichiers ne pourront plus être envoyés (un message l’indique).

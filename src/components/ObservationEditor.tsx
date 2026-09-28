@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Annotable, Annotation, ContentItem, FileRef, ObsStatus, Observation, Project } from '../types';
 import { useStore } from '../store';
 import { uid, pastilleLabel } from '../lib/ids';
@@ -110,13 +111,21 @@ export function PhotoButtons({ onFiles, compact }: { onFiles: (files: File[]) =>
   );
 }
 
-export function Lightbox({ item, onClose }: { item: ContentItem & { type: 'photo' }; onClose: () => void }) {
+export function Lightbox({ item, onClose, onAnnotate }: { item: ContentItem & { type: 'photo' }; onClose: () => void; onAnnotate?: () => void }) {
   const { url } = useFileUrl(item.file);
-  return (
+  return createPortal(
     <div className="lightbox" onClick={onClose}>
       {url ? <img src={url} alt={item.legende || ''} /> : <span style={{ color: '#fff' }}>Chargement…</span>}
-      <button className="btn sand sm icon" aria-label="Fermer"><IconClose /></button>
-    </div>
+      <div className="lightbox-actions">
+        {onAnnotate && (
+          <button className="btn sand sm" onClick={(e) => { e.stopPropagation(); onAnnotate(); }}>
+            <IconEdit /> {item.annotations?.length ? 'Modifier les annotations' : 'Annoter'}
+          </button>
+        )}
+        <button className="btn sand sm icon" aria-label="Fermer"><IconClose /></button>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -255,9 +264,14 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
               <textarea value={c.texte} placeholder="Description…" onChange={(e) => updItem(c.id, { texte: e.target.value })} />
             ) : (
               <div className="stack" style={{ gap: 6 }}>
-                <button type="button" className="photo linkbtn" style={{ textDecoration: 'none', width: '100%' }} onClick={() => setLight(c)}>
-                  <FileImage file={c.file} alt={c.legende} />
-                </button>
+                <div className="doc-thumb">
+                  <button type="button" className="photo linkbtn" style={{ textDecoration: 'none', width: '100%' }} onClick={() => setLight(c)}>
+                    <FileImage file={c.file} alt={c.legende} />
+                  </button>
+                  <div className="doc-thumb-actions">
+                    <button type="button" className="btn sand sm icon" aria-label="Annoter" title="Annoter" onClick={() => setAnnote(c)}><IconEdit /></button>
+                  </div>
+                </div>
                 <input type="text" placeholder="Légende (facultatif)" value={c.legende || ''} onChange={(e) => updItem(c.id, { legende: e.target.value })} />
               </div>
             )}
@@ -283,9 +297,14 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
         {photos.length > 1 && (
           <div className="thumbs">
             {photos.map((ph) => (
-              <button key={ph.id} className="thumb" onClick={() => setLight(ph)}>
-                <FileImage file={ph.file} />
-              </button>
+              <div key={ph.id} className="doc-thumb">
+                <button type="button" className="thumb" onClick={() => setLight(ph)}>
+                  <FileImage file={ph.file} />
+                </button>
+                <div className="doc-thumb-actions">
+                  <button type="button" className="btn sand sm icon" aria-label="Annoter" title="Annoter" onClick={() => setAnnote(ph)}><IconEdit /></button>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -297,7 +316,7 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
       </label>
 
       {!quick && <History draft={draft} onChange={(h) => set('historique', h, true)} />}
-      {light && <Lightbox item={light} onClose={() => setLight(null)} />}
+      {light && <Lightbox item={light} onClose={() => setLight(null)} onAnnotate={() => { setAnnote(light); setLight(null); }} />}
       {annote && (
         <PhotoAnnotator
           file={annote.original ?? annote.file}
