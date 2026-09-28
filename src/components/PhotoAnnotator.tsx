@@ -47,7 +47,7 @@ function dessiner(ctx: CanvasRenderingContext2D, a: Annotation, lw: number) {
     ctx.fill();
   } else if (a.type === 'texte') {
     const size = lw * 8;
-    ctx.font = `700 ${size}px Inter, system-ui, sans-serif`;
+    ctx.font = `700 ${size}px 'Jost Variable', Jost, system-ui, sans-serif`;
     ctx.textBaseline = 'middle';
     // Contour pour rester lisible sur n'importe quel fond
     ctx.lineWidth = size / 5;

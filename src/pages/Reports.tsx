@@ -57,7 +57,7 @@ export function Reports({ p }: { p: Project }) {
           <div className="list">
             {list.map((c) => (
               <a key={c.id} className="item" href={href(`/p/${p.id}/cr/${c.id}`)}>
-                <span className="serif" style={{ fontSize: 26, width: 64 }}>{String(c.numero).padStart(3, '0')}</span>
+                <span className="serif" style={{ fontSize: 24, fontWeight: 300, width: 64 }}>{String(c.numero).padStart(3, '0')}</span>
                 <div className="grow">
                   <div style={{ fontWeight: 500 }}>CR n°{String(c.numero).padStart(3, '0')} — {fmt(c.date)}</div>
                   <div className="tiny muted">

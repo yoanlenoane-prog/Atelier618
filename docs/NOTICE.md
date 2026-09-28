@@ -80,7 +80,7 @@ Cette même structure sert partout : Gantt, observations, comptes rendus, recher
 
 Menu **Gantt**. Chaque ligne affiche deux barres :
 
-- **barre beige hachurée (haut)** : ce qui était **prévu** ;
+- **barre grise hachurée (haut)** : ce qui était **prévu** ;
 - **barre noire (bas)** : ce qui est **réellement** fait ;
 - **partie rouge** : le **dépassement** au-delà de la fin prévue ;
 - **barre verte** : tâche terminée **en avance** ;

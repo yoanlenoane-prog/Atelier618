@@ -9,6 +9,7 @@ import { createSample } from '../lib/sample';
 import { Modal, Progress, toast, useToday } from '../components/ui';
 import { IconPlus } from '../components/Icons';
 import { SyncPill } from '../components/SyncPill';
+import { Logo } from '../components/Logo';
 import { InfoFields } from './ProjectInfo';
 import type { ProjectInfo } from '../types';
 
@@ -22,10 +23,8 @@ export function Home() {
     <div>
       <div className="hero">
         <div>
-          <div className="eyebrow">Suivi de chantier</div>
-          <h1>
-            Atelier <em>618</em>
-          </h1>
+          <Logo size="lg" />
+          <h1>Suivi de chantier</h1>
         </div>
         <div className="row wrap">
           <SyncPill />

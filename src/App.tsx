@@ -6,6 +6,7 @@ import {
   IconBack, IconDash, IconDocs, IconGantt, IconHelp, IconHome, IconObs, IconPlan, IconPlus, IconReport, IconSearch, IconSettings, IconStructure, IconInfo, IconCompany,
 } from './components/Icons';
 import { SyncPill } from './components/SyncPill';
+import { Logo } from './components/Logo';
 import { Home } from './pages/Home';
 import { Settings } from './pages/Settings';
 import { Help } from './pages/Help';
@@ -103,9 +104,8 @@ export function App() {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <a className="brand" href={href('/')}>
-          <span className="serif">Atelier</span>
-          <span className="num">618</span>
+        <a className="brand" href={href('/')} aria-label="atelier618 — Mes projets">
+          <Logo size="sm" />
         </a>
         <nav className="nav">
           <a href={href('/')} className={isHome ? 'on' : ''}><IconHome /> Mes projets</a>
