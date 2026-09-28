@@ -39,7 +39,7 @@ export function useProject(id: string): Project | undefined {
   return useStore().get(id);
 }
 
-const COLLECTIONS: Collection[] = ['plans', 'observations', 'comptesRendus', 'documents'];
+const COLLECTIONS: Collection[] = ['plans', 'observations', 'comptesRendus', 'documents', 'dossiers'];
 const DELETED_KEY = 'deletedProjects';
 
 /** Horodate automatiquement ce qui a changé entre deux versions (utile à la fusion). */
@@ -47,9 +47,9 @@ function stamp(prev: Project, next: Project): boolean {
   const now = Date.now();
   let changed = false;
   for (const c of COLLECTIONS) {
-    const before = new Map<string, string>((prev[c] as any[]).map((i) => [i.id, JSON.stringify(i)]));
+    const before = new Map<string, string>(((prev[c] || []) as any[]).map((i) => [i.id, JSON.stringify(i)]));
     const ids = new Set<string>();
-    for (const item of next[c] as any[]) {
+    for (const item of (next[c] || []) as any[]) {
       ids.add(item.id);
       if (before.get(item.id) !== JSON.stringify(item)) {
         item.updatedAt = now;

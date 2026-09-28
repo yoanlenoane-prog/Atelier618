@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Project } from '../types';
 import { href, navigate } from '../router';
 import { fmt } from '../lib/dates';
+import { DOSSIER_CR, cheminDossier, dossierDe } from '../lib/dossiers';
 import { pastilleLabel } from '../lib/ids';
 import { OBS_STATUS_LABEL } from '../lib/labels';
 import { codeBloc, codeSousBloc } from '../lib/planning';
@@ -46,7 +47,11 @@ export function searchProject(p: Project, q: string): Hit[] {
   }
   for (const pl of p.plans) if (has(pl.nom)) hits.push({ kind: 'Plan', title: pl.nom, link: `/p/${p.id}/plans/${pl.id}` });
   for (const e of p.info.entreprises) if (has(e.nom, e.lot, e.contact)) hits.push({ kind: 'Entreprise', title: e.nom, sub: [e.lot, e.contact].filter(Boolean).join(' · '), link: `/p/${p.id}/infos` });
-  for (const d of p.documents) if (has(d.nom, d.categorie) || dateHit(d.date)) hits.push({ kind: 'Document', title: d.nom, sub: `${d.categorie} · ${fmt(d.date)}`, link: `/p/${p.id}/docs` });
+  for (const d of p.documents) {
+    const k = dossierDe(d);
+    const dossier = k === DOSSIER_CR ? 'Comptes rendus' : cheminDossier(p, k).map((x) => x.nom).join(' / ') || 'Documents';
+    if (has(d.nom, dossier) || dateHit(d.date)) hits.push({ kind: 'Document', title: d.nom, sub: `${dossier} · ${fmt(d.date)}`, link: `/p/${p.id}/docs${k ? '/' + k : ''}` });
+  }
   return hits;
 }
 

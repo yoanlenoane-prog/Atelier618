@@ -1,13 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ContentItem, ObsStatus, Observation, Project } from '../types';
+import type { Annotable, Annotation, ContentItem, FileRef, ObsStatus, Observation, Project } from '../types';
 import { useStore } from '../store';
 import { uid, pastilleLabel } from '../lib/ids';
 import { today, fmt } from '../lib/dates';
 import { compressPhoto, photoName, storeLocal } from '../lib/files';
 import { OBS_STATUS, OBS_STATUS_LABEL } from '../lib/labels';
 import { FileImage, useFileUrl } from './FileImage';
-import { IconCamera, IconClose, IconDown, IconPlus, IconText, IconTrash, IconUp } from './Icons';
+import { PhotoAnnotator } from './PhotoAnnotator';
+import { IconCamera, IconClose, IconDown, IconEdit, IconPlus, IconText, IconTrash, IconUp } from './Icons';
 import { toast } from './ui';
+
+/**
+ * Applique le résultat de l'outil d'annotation à une photo : image annotée + formes,
+ * ou retour à l'original quand toutes les annotations ont été effacées.
+ */
+export async function appliquerAnnotation<T extends Annotable & { file: FileRef }>(item: T, blob: Blob | null, annotations: Annotation[]): Promise<T> {
+  const original = item.original ?? item.file;
+  if (!blob) return { ...item, file: original, original: undefined, annotations: undefined };
+  const base = original.name.replace(/\.[a-z0-9]+$/i, '');
+  const file = await storeLocal(blob, `${base}-annotee.jpg`);
+  return { ...item, file, original, annotations };
+}
 
 /** Crée une observation (pastille) et renvoie son id. */
 export async function createObservation(
@@ -116,6 +129,7 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
   const stored = p.observations.find((o) => o.id === obsId);
   const [draft, setDraft] = useState<Observation | undefined>(stored);
   const [light, setLight] = useState<(ContentItem & { type: 'photo' }) | null>(null);
+  const [annote, setAnnote] = useState<(ContentItem & { type: 'photo' }) | null>(null);
   const [busy, setBusy] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   const pendingRef = useRef<Observation | undefined>(undefined);
@@ -248,6 +262,11 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
               </div>
             )}
             <div className="row" style={{ justifyContent: 'flex-end', marginTop: 6, gap: 4 }}>
+              {c.type === 'photo' && (
+                <button type="button" className="btn ghost sm" style={{ marginRight: 'auto' }} onClick={() => setAnnote(c)}>
+                  <IconEdit /> {c.annotations?.length ? 'Modifier les annotations' : 'Annoter'}
+                </button>
+              )}
               <button type="button" className="btn ghost sm icon" aria-label="Monter" onClick={() => moveItem(i, -1)}><IconUp /></button>
               <button type="button" className="btn ghost sm icon" aria-label="Descendre" onClick={() => moveItem(i, 1)}><IconDown /></button>
               <button
@@ -279,6 +298,18 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
 
       {!quick && <History draft={draft} onChange={(h) => set('historique', h, true)} />}
       {light && <Lightbox item={light} onClose={() => setLight(null)} />}
+      {annote && (
+        <PhotoAnnotator
+          file={annote.original ?? annote.file}
+          annotations={annote.annotations}
+          onClose={() => setAnnote(null)}
+          onSave={async (blob, annotations) => {
+            const item = await appliquerAnnotation(annote, blob, annotations);
+            change({ ...draft, contenu: draft.contenu.map((x) => (x.id === item.id ? item : x)) }, true);
+            toast(blob ? 'Annotations enregistrées' : 'Photo d’origine rétablie');
+          }}
+        />
+      )}
     </div>
   );
 }

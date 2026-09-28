@@ -3,7 +3,7 @@ import { useStore } from './store';
 import { href, useRoute } from './router';
 import { ToastHost } from './components/ui';
 import {
-  IconBack, IconDash, IconDocs, IconGantt, IconHelp, IconHome, IconObs, IconPlan, IconPlus, IconReport, IconSearch, IconSettings, IconStructure, IconInfo,
+  IconBack, IconDash, IconDocs, IconGantt, IconHelp, IconHome, IconObs, IconPlan, IconPlus, IconReport, IconSearch, IconSettings, IconStructure, IconInfo, IconCompany,
 } from './components/Icons';
 import { SyncPill } from './components/SyncPill';
 import { Home } from './pages/Home';
@@ -21,6 +21,7 @@ import { ReportEdit } from './pages/ReportEdit';
 import { ReportPrint } from './pages/ReportPrint';
 import { Documents } from './pages/Documents';
 import { Search } from './pages/Search';
+import { Entreprises, EntreprisePrint } from './pages/Entreprises';
 
 const PROJECT_NAV: { key: string; label: string; short: string; icon: (p: any) => ReactNode; mobile?: boolean }[] = [
   { key: '', label: 'Tableau de bord', short: 'Accueil', icon: IconDash, mobile: true },
@@ -28,6 +29,7 @@ const PROJECT_NAV: { key: string; label: string; short: string; icon: (p: any) =
   { key: 'plans', label: 'Plans', short: 'Plans', icon: IconPlan, mobile: true },
   { key: 'obs', label: 'Observations', short: 'Pastilles', icon: IconObs, mobile: true },
   { key: 'cr', label: 'Comptes rendus', short: 'CR', icon: IconReport, mobile: true },
+  { key: 'entreprises', label: 'Entreprises', short: 'Entreprises', icon: IconCompany },
   { key: 'docs', label: 'Documents', short: 'Docs', icon: IconDocs },
   { key: 'structure', label: 'Blocs & sous-blocs', short: 'Structure', icon: IconStructure },
   { key: 'infos', label: 'Informations', short: 'Infos', icon: IconInfo },
@@ -43,6 +45,7 @@ export function App() {
 
   // Page d'impression plein écran (sans navigation)
   if (section === 'p' && sub === 'cr' && subId && extra === 'imprimer') return <ReportPrint projectId={pid} reportId={subId} />;
+  if (section === 'p' && sub === 'entreprises' && subId && extra === 'imprimer') return <EntreprisePrint projectId={pid} cle={subId} />;
 
   const project = section === 'p' ? store.get(pid) : undefined;
   let page: ReactNode;
@@ -74,7 +77,11 @@ export function App() {
           if (subId) { page = <ReportEdit p={project} reportId={subId} />; back = `/p/${pid}/cr`; }
           else page = <Reports p={project} />;
           break;
-        case 'docs': page = <Documents p={project} />; break;
+        case 'entreprises':
+          page = <Entreprises p={project} cle={subId} />;
+          if (subId) back = `/p/${pid}/entreprises`;
+          break;
+        case 'docs': page = <Documents p={project} dossierId={subId} />; break;
         case 'recherche': page = <Search p={project} query={route.query} />; break;
         default: page = <Dashboard p={project} />;
       }

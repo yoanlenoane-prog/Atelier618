@@ -6,7 +6,7 @@ import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sous
 import { FileImage } from './FileImage';
 import { PlanView } from './PlanView';
 
-function ObsBlock({ p, o, showLoc }: { p: Project; o: Observation; showLoc?: boolean }) {
+export function ObsBlock({ p, o, showLoc }: { p: Project; o: Observation; showLoc?: boolean }) {
   const sb = findSousBloc(p, o.sousBlocId);
   const photos = o.contenu.filter((c) => c.type === 'photo');
   const plan = p.plans.find((x) => x.id === o.planId);

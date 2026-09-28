@@ -27,6 +27,7 @@ export function newProject(info: ProjectInfo, blocs: Bloc[] = []): Project {
     observations: [],
     comptesRendus: [],
     documents: [],
+    dossiers: [],
     compteurPastille: 0,
     createdAt: now,
     updatedAt: now,
