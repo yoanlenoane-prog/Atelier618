@@ -54,19 +54,19 @@ function layoutRows(fmt: { w: number; h: number }, nRows: number) {
 }
 
 const C = {
-  ink: '#141312',
-  muted: '#847a6d',
-  line: '#d6cab7',
-  lineSoft: '#e9e1d4',
-  sand: '#cbb899',
-  sand2: '#b39f7d',
-  plan: '#d8c9ae',
-  blocBg: '#f1e9dc',
-  weekend: '#f5efe5',
-  late: '#a3412c',
-  lateSoft: '#efd5cc',
-  early: '#55663a',
-  earlySoft: '#dde2cc',
+  ink: '#1d1d1b',
+  muted: '#6f6f6e',
+  line: '#d2d2d2',
+  lineSoft: '#e6e6e6',
+  sand: '#bdbdbd',
+  sand2: '#9d9d9c',
+  plan: '#d9d9d9',
+  blocBg: '#f4f4f4',
+  weekend: '#f5f5f5',
+  late: '#a8362a',
+  lateSoft: '#f2dcd8',
+  early: '#4f6b3a',
+  earlySoft: '#e0e8d6',
 };
 
 /** Les polices standard des PDF ne connaissent pas certains signes typographiques. */

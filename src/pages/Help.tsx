@@ -51,7 +51,7 @@ export function Help() {
   return (
     <div className="doc">
       <div className="eyebrow">Atelier 618</div>
-      <h1 className="serif" style={{ fontSize: 44, lineHeight: 1 }}>Notice d’utilisation</h1>
+      <h1 className="serif caps" style={{ fontSize: 24, lineHeight: 1.2 }}>Notice d’utilisation</h1>
       {renderMarkdown(notice)}
     </div>
   );

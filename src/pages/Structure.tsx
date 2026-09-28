@@ -62,7 +62,7 @@ export function Structure({ p }: { p: Project }) {
           <div className="card" key={bloc.id}>
             <div className="row between wrap">
               <div className="row">
-                <span className="serif" style={{ fontSize: 26, color: 'var(--sand-2)' }}>{String(bi + 1).padStart(2, '0')}</span>
+                <span className="serif" style={{ fontSize: 24, fontWeight: 300, color: 'var(--sand-2)' }}>{String(bi + 1).padStart(2, '0')}</span>
                 <h2 style={{ margin: 0 }}>{bloc.nom}</h2>
               </div>
               <div className="row">

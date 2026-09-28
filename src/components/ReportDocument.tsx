@@ -5,6 +5,7 @@ import { OBS_STATUS_LABEL, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants }
 import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
 import { FileImage } from './FileImage';
 import { PlanView } from './PlanView';
+import { Logo } from './Logo';
 
 export function ObsBlock({ p, o, showLoc }: { p: Project; o: Observation; showLoc?: boolean }) {
   const sb = findSousBloc(p, o.sousBlocId);
@@ -57,8 +58,8 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
     <article className="report">
       <div className="r-head">
         <div>
-          <div className="r-logo">{p.info.architecte || 'Atelier 618'}</div>
-          <div style={{ fontSize: 11, color: '#777', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 4 }}>Maîtrise d’œuvre</div>
+          <Logo />
+          <div style={{ fontSize: 10.5, color: '#777', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 10 }}>Maîtrise d’œuvre</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#777' }}>

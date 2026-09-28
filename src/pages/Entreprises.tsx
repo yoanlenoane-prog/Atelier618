@@ -8,6 +8,7 @@ import { OBS_STATUS_LABEL } from '../lib/labels';
 import { TASK_STATE_LABEL, codeSousBloc, formatEcart } from '../lib/planning';
 import { entreprisesDuProjet, type FicheEntreprise } from '../lib/entreprises';
 import { ObsBlock } from '../components/ReportDocument';
+import { Logo } from '../components/Logo';
 import { Empty, Progress, useToday } from '../components/ui';
 import { IconBack, IconPrint } from '../components/Icons';
 
@@ -52,7 +53,7 @@ export function Entreprises({ p, cle }: { p: Project; cle?: string }) {
             return (
               <a key={f.cle} className="card stack" href={href(lienFiche(p, f))} style={{ textDecoration: 'none', color: 'inherit', gap: 10 }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 22 }}>{f.nom}</div>
+                  <div className="serif" style={{ fontSize: 17, textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 500 }}>{f.nom}</div>
                   <div className="tiny muted">{[f.lot, f.contact].filter(Boolean).join(' · ') || ' '}</div>
                 </div>
                 <div className="row wrap" style={{ gap: 6 }}>
@@ -82,8 +83,8 @@ function FicheDocument({ p, f, auj }: { p: Project; f: FicheEntreprise; auj: str
     <article className="report">
       <div className="r-head">
         <div>
-          <div className="r-logo">{p.info.architecte || 'Atelier 618'}</div>
-          <div style={{ fontSize: 11, color: '#777', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 4 }}>Maîtrise d’œuvre</div>
+          <Logo />
+          <div style={{ fontSize: 10.5, color: '#777', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 10 }}>Maîtrise d’œuvre</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#777' }}>Points à traiter</div>

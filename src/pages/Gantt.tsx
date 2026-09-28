@@ -215,7 +215,7 @@ export function Gantt({ p }: { p: Project }) {
       </div>
 
       <div className="legend" style={{ marginTop: 12 }}>
-        <span><i style={{ background: 'repeating-linear-gradient(135deg, #cbb899 0 5px, #d8c9ae 5px 10px)', border: '1px solid #b39f7d' }} /> Prévu</span>
+        <span><i style={{ background: 'repeating-linear-gradient(135deg, #cfcfcf 0 5px, #e4e4e4 5px 10px)', border: '1px solid #9d9d9c' }} /> Prévu</span>
         <span><i style={{ background: 'var(--ink)' }} /> Réel</span>
         <span><i style={{ background: 'var(--late)' }} /> Dépassement</span>
         <span><i style={{ background: 'var(--early)' }} /> Terminé en avance</span>
