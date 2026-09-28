@@ -4,6 +4,7 @@ import { href, navigate } from '../router';
 import { uid } from '../lib/ids';
 import { fmt, today } from '../lib/dates';
 import { isOpen } from '../lib/planning';
+import { CR_CHANTIER, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants } from '../lib/labels';
 import { Empty } from '../components/ui';
 import { IconPlus } from '../components/Icons';
 
@@ -23,6 +24,9 @@ export function Reports({ p }: { p: Project }) {
         id,
         numero,
         date: today(),
+        type: last?.type || 'avancement',
+        concernes: last?.concernes ? [...last.concernes] : [CR_CHANTIER],
+        afficherAvancement: last?.afficherAvancement ?? true,
         participants: last?.participants || [p.info.architecte && `${p.info.architecte} — architecte`, ...p.info.entreprises.map((e) => e.nom)].filter(Boolean).join('\n'),
         rubriques: {},
         observationIds: obsIds,
@@ -57,8 +61,10 @@ export function Reports({ p }: { p: Project }) {
                 <div className="grow">
                   <div style={{ fontWeight: 500 }}>CR n°{String(c.numero).padStart(3, '0')} — {fmt(c.date)}</div>
                   <div className="tiny muted">
-                    {c.observationIds.length} observation{c.observationIds.length > 1 ? 's' : ''} · {c.mode === 'bloc' ? 'par bloc' : 'par pastille'}
-                    {c.participants && ` · ${c.participants.split('\n').filter(Boolean).length} participant(s)`}
+                    {REPORT_TYPE_LABEL[c.type || 'avancement']}
+                    {crConcernesLabel(c) && ` (${crConcernesLabel(c)})`}
+                    {' · '}{c.observationIds.length} observation{c.observationIds.length > 1 ? 's' : ''}
+                    {crParticipants(c).length > 0 && ` · ${crParticipants(c).length} participant(s)`}
                   </div>
                 </div>
               </a>

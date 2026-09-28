@@ -85,11 +85,24 @@ export interface Observation {
 
 export type ReportMode = 'pastille' | 'bloc';
 
+/** Objet du compte rendu. */
+export type ReportType = 'avancement' | 'reunion' | 'observation';
+
 export interface CompteRendu {
   id: string;
   numero: number;
   date: ISODate;
+  /** Objet du compte rendu (« avancement » par défaut). */
+  type?: ReportType;
+  /**
+   * Entreprises concernées (avancement / observation) ou participants cochés (réunion),
+   * par leur nom. « Chantier » (CR_CHANTIER) = l'ensemble du chantier.
+   */
+  concernes?: string[];
+  /** Participants saisis librement, un par ligne (en plus des participants cochés). */
   participants: string;
+  /** Afficher l'avancement estimé (oui par défaut). */
+  afficherAvancement?: boolean;
   meteo?: string;
   notesGenerales?: string;
   /** Texte libre saisi sous chaque rubrique (clé = id du bloc ou du sous-bloc). */

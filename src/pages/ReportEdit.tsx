@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CompteRendu, Project } from '../types';
+import type { CompteRendu, Project, ReportType } from '../types';
 import { useStore } from '../store';
 import { href, navigate } from '../router';
 import { pastilleLabel, uid } from '../lib/ids';
 import { fmt, today } from '../lib/dates';
 import { storeLocal } from '../lib/files';
-import { OBS_STATUS_LABEL } from '../lib/labels';
+import { CR_CHANTIER, OBS_STATUS_LABEL, REPORT_TYPE, reunionCandidats } from '../lib/labels';
 import { isOpen } from '../lib/planning';
 import { Empty, Seg, toast, useToday } from '../components/ui';
 import { ReportDocument } from '../components/ReportDocument';
@@ -44,6 +44,16 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
   const set = <K extends keyof CompteRendu>(k: K, v: CompteRendu[K]) => change({ ...cr, [k]: v });
   const toggleObs = (id: string) =>
     set('observationIds', cr.observationIds.includes(id) ? cr.observationIds.filter((x) => x !== id) : [...cr.observationIds, id]);
+
+  const type = cr.type || 'avancement';
+  const concernes = cr.concernes || [];
+  const choix = type === 'reunion'
+    ? reunionCandidats(p)
+    : p.info.entreprises.filter((e) => e.nom).map((e) => ({ nom: e.nom, detail: e.lot }));
+  // Changer d'objet réinitialise la sélection (entreprises ≠ participants)
+  const setType = (t: ReportType) => t !== type && change({ ...cr, type: t, concernes: t === 'avancement' ? [CR_CHANTIER] : [] });
+  const toggleConcerne = (nom: string) =>
+    set('concernes', concernes.includes(nom) ? concernes.filter((x) => x !== nom) : [...concernes, nom]);
 
   const allObs = [...p.observations].sort((a, b) => a.numero - b.numero);
   const rubrique = (id: string, label: string, strong = false) => (
@@ -98,7 +108,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
                 <input type="date" value={cr.prochaineVisite || ''} onChange={(e) => set('prochaineVisite', e.target.value || undefined)} />
               </label>
               <label className="f full">
-                Participants (un par ligne)
+                {type === 'reunion' ? 'Autres participants (un par ligne)' : 'Participants (un par ligne)'}
                 <textarea value={cr.participants} onChange={(e) => set('participants', e.target.value)} />
               </label>
               <label className="f full">
@@ -106,6 +116,35 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
                 <textarea value={cr.notesGenerales || ''} onChange={(e) => set('notesGenerales', e.target.value)} />
               </label>
             </div>
+          </div>
+
+          <div className="card">
+            <div className="row between wrap">
+              <h2>Objet du compte rendu</h2>
+              <Seg value={type} onChange={setType} options={REPORT_TYPE} />
+            </div>
+            <div className="small muted" style={{ margin: '4px 0 8px' }}>
+              {type === 'reunion' ? 'Participants à la réunion :' : 'Entreprises concernées :'}
+            </div>
+            <div className="list">
+              {type === 'avancement' && (
+                <label className="item check" style={{ cursor: 'pointer' }}>
+                  <input type="checkbox" checked={concernes.includes(CR_CHANTIER)} onChange={() => toggleConcerne(CR_CHANTIER)} />
+                  <span className="grow"><strong>Chantier</strong> <span className="tiny muted">— l’ensemble du chantier</span></span>
+                </label>
+              )}
+              {choix.map((c) => (
+                <label key={c.nom} className="item check" style={{ cursor: 'pointer' }}>
+                  <input type="checkbox" checked={concernes.includes(c.nom)} onChange={() => toggleConcerne(c.nom)} />
+                  <span className="grow">{c.nom}{c.detail && <span className="tiny muted"> — {c.detail}</span>}</span>
+                </label>
+              ))}
+            </div>
+            {choix.length === 0 && (
+              <div className="small muted">
+                Aucune {type === 'reunion' ? 'personne' : 'entreprise'} renseignée — ajoutez-les dans <a href={href(`/p/${p.id}/infos`)}>les informations du projet</a>.
+              </div>
+            )}
           </div>
 
           <div className="card">
@@ -120,6 +159,10 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
             <label className="check" style={{ marginTop: 8 }}>
               <input type="checkbox" checked={cr.inclurePlanning !== false} onChange={(e) => set('inclurePlanning', e.target.checked)} />
               Inclure le paragraphe « Planning — points de vigilance »
+            </label>
+            <label className="check" style={{ marginTop: 8 }}>
+              <input type="checkbox" checked={cr.afficherAvancement !== false} onChange={(e) => set('afficherAvancement', e.target.checked)} />
+              Afficher l’avancement estimé
             </label>
           </div>
 

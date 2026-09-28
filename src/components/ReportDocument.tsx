@@ -1,7 +1,7 @@
 import type { CompteRendu, Observation, Project } from '../types';
 import { fmt, fmtLong } from '../lib/dates';
 import { pastilleLabel } from '../lib/ids';
-import { OBS_STATUS_LABEL } from '../lib/labels';
+import { OBS_STATUS_LABEL, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants } from '../lib/labels';
 import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
 import { FileImage } from './FileImage';
 import { PlanView } from './PlanView';
@@ -50,6 +50,8 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
   const plans = p.plans.filter((pl) => obs.some((o) => o.planId === pl.id && o.x !== undefined));
   const actions = obs.filter(isOpen).filter((o) => o.actionDemandee || o.entreprise);
   const rub = (id: string) => (cr.rubriques[id] || '').trim();
+  const participants = crParticipants(cr);
+  const concernes = crConcernesLabel(cr);
 
   return (
     <article className="report">
@@ -59,7 +61,9 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
           <div style={{ fontSize: 11, color: '#777', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 4 }}>Maîtrise d’œuvre</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#777' }}>Compte rendu de chantier</div>
+          <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#777' }}>
+            Compte rendu — {REPORT_TYPE_LABEL[cr.type || 'avancement']}
+          </div>
           <h1>N° {String(cr.numero).padStart(3, '0')}</h1>
           <div>{fmtLong(cr.date)}</div>
         </div>
@@ -70,9 +74,13 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
         {p.info.adresse && (<><dt>Adresse</dt><dd>{p.info.adresse}</dd></>)}
         {p.info.maitreOuvrage && (<><dt>Maître d’ouvrage</dt><dd>{p.info.maitreOuvrage}</dd></>)}
         {p.info.maitreOeuvre && (<><dt>Maître d’œuvre</dt><dd>{p.info.maitreOeuvre}</dd></>)}
-        {cr.participants && (<><dt>Participants</dt><dd>{cr.participants}</dd></>)}
+        <dt>Objet</dt><dd>{REPORT_TYPE_LABEL[cr.type || 'avancement']}</dd>
+        {concernes && (<><dt>Concerne</dt><dd>{concernes}</dd></>)}
+        {participants.length > 0 && (<><dt>Participants</dt><dd style={{ whiteSpace: 'pre-line' }}>{participants.join('\n')}</dd></>)}
         {cr.meteo && (<><dt>Météo</dt><dd>{cr.meteo}</dd></>)}
-        <dt>Avancement estimé</dt><dd>{avancementProjet(p, cr.date)} %{p.info.dateFinPrevue && ` — fin prévue le ${fmt(p.info.dateFinPrevue)}`}</dd>
+        {cr.afficherAvancement !== false && (
+          <><dt>Avancement estimé</dt><dd>{avancementProjet(p, cr.date)} %{p.info.dateFinPrevue && ` — fin prévue le ${fmt(p.info.dateFinPrevue)}`}</dd></>
+        )}
         {cr.prochaineVisite && (<><dt>Prochaine visite</dt><dd>{fmtLong(cr.prochaineVisite)}</dd></>)}
       </dl>
 
