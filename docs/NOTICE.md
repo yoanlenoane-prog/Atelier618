@@ -203,7 +203,7 @@ Tous les comptes rendus restent accessibles dans la liste ; depuis une observati
 
 ## 9. Tableau de bord, entreprises et documents
 
-La page d’accueil **Mes projets** commence par une **vue d’ensemble** de tous les chantiers actifs (hors projets terminés ou suspendus) : observations ouvertes, **échéances dépassées**, **lots en retard** et tout ce qui est prévu **dans les 14 prochains jours** (débuts et fins de lots, échéances, prochaines visites). Chaque ligne ouvre directement l’élément concerné.
+L’onglet **Vue d’ensemble** (menu de gauche, ou « Ensemble » en bas sur téléphone) regroupe tous les chantiers actifs (hors projets terminés ou suspendus) : observations ouvertes, **échéances dépassées**, **lots en retard** et tout ce qui est prévu **dans les 14 prochains jours** (débuts et fins de lots, échéances, prochaines visites). Chaque ligne ouvre directement l’élément concerné ; la case **Chantiers actifs** ramène à **Mes projets**.
 
 Le **Tableau de bord** d’un projet résume le projet : avancement estimé, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
 

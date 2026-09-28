@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Project } from '../types';
 import { href } from '../router';
+import { Empty, useToday } from './ui';
 import { diffDays, fmt, fmtShort, addDays } from '../lib/dates';
 import { pastilleLabel } from '../lib/ids';
 import { analyseSousBloc, codeSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
@@ -19,7 +20,8 @@ interface Ligne {
 }
 
 /** Tableau de bord multi-chantiers : ce qui demande de l'attention, tous projets confondus. */
-export function Overview({ projects, auj }: { projects: Project[]; auj: string }) {
+export function Overview({ projects }: { projects: Project[] }) {
+  const auj = useToday();
   const actifs = projects.filter((p) => !INACTIFS.includes(p.info.statut));
   const echues: Ligne[] = [];
   const retards: Ligne[] = [];
@@ -54,16 +56,25 @@ export function Overview({ projects, auj }: { projects: Project[]; auj: string }
   echues.sort((a, b) => (a.date! < b.date! ? -1 : 1));
   aVenir.sort((a, b) => (a.date! < b.date! ? -1 : 1));
 
-  if (projects.length === 0) return null;
+  if (projects.length === 0)
+    return (
+      <Empty title="Aucun projet">
+        <p>La vue d’ensemble regroupera les échéances et retards de tous vos chantiers.</p>
+        <a className="btn" href={href('/')}>Mes projets</a>
+      </Empty>
+    );
 
   return (
-    <div className="stack" style={{ marginBottom: 28 }}>
-      <div className="section-title">
-        <h2>Vue d’ensemble</h2>
-        <span className="muted small">{actifs.length} chantier{actifs.length > 1 ? 's' : ''} actif{actifs.length > 1 ? 's' : ''}</span>
+    <div className="stack lg">
+      <div className="small muted">
+        Ce qui demande votre attention sur tous les chantiers actifs (hors projets terminés ou suspendus).
       </div>
       <div className="grid c4">
-        <div className="card kpi"><div className="v">{actifs.length}</div><div className="l eyebrow">Chantiers actifs</div></div>
+        <a className="card kpi" href={href('/')} style={{ textDecoration: 'none', color: 'inherit' }} title="Voir mes projets">
+          <div className="v">{actifs.length}</div>
+          <div className="l eyebrow">Chantiers actifs</div>
+          <div className="tiny muted" style={{ marginTop: 6 }}>Voir mes projets →</div>
+        </a>
         <div className="card kpi"><div className="v">{ouvertes}</div><div className="l eyebrow">Observations ouvertes</div></div>
         <div className="card kpi"><div className={'v' + (echues.length ? ' late' : '')}>{echues.length}</div><div className="l eyebrow">Échéances dépassées</div></div>
         <div className="card kpi"><div className={'v' + (retards.length ? ' late' : '')}>{retards.length}</div><div className="l eyebrow">Lots en retard</div></div>
