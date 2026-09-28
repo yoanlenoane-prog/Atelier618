@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Annotation, FileRef } from '../types';
 import { useFileUrl } from './FileImage';
 import { IconClose } from './Icons';
@@ -89,6 +90,17 @@ export function PhotoAnnotator({
     i.src = url;
   }, [url]);
 
+  // Échap ferme l'outil sans fermer la fenêtre de la pastille située dessous
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      onClose();
+    };
+    window.addEventListener('keydown', k, true);
+    return () => window.removeEventListener('keydown', k, true);
+  }, [onClose]);
+
   const lw = img ? epaisseur(img.naturalWidth, img.naturalHeight) : 4;
 
   const rendre = (liste: Annotation[]) => {
@@ -154,7 +166,8 @@ export function PhotoAnnotator({
     }
   };
 
-  return (
+  // Rendu au-dessus de tout (y compris d'une fenêtre ouverte depuis le plan)
+  return createPortal(
     <div className="annot">
       <div className="annot-bar">
         <div className="seg">
@@ -184,6 +197,7 @@ export function PhotoAnnotator({
       <div className="annot-hint">
         {outil === 'texte' ? 'Touchez la photo à l’endroit où placer le texte.' : 'Dessinez directement sur la photo.'}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

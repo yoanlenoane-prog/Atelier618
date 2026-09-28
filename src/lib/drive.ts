@@ -109,6 +109,16 @@ export async function updateMeta(id: string, meta: Record<string, unknown>): Pro
   return res.json();
 }
 
+/** Crée un raccourci Drive (le fichier apparaît aussi dans un autre dossier, sans copie). */
+export async function createShortcut(targetId: string, name: string, parent: string): Promise<DriveFile> {
+  const res = await call(`${API}/files?fields=${FIELDS}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.shortcut', shortcutDetails: { targetId }, parents: [parent] }),
+  });
+  return res.json();
+}
+
 /** Déplace un fichier ou un dossier d'un dossier parent à un autre. */
 export async function moveFile(id: string, to: string, from?: string): Promise<DriveFile> {
   const params = new URLSearchParams({ addParents: to, fields: FIELDS });

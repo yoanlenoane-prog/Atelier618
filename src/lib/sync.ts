@@ -6,6 +6,7 @@
  *       Projet/projet.json      ← toutes les données de l'application
  *       Plans/                  ← plans importés
  *       Photos/P-012/…          ← photos rangées par pastille
+ *       Photos/Photos/…         ← raccourcis vers les photos ajoutées dans Documents
  *       Documents/<dossiers créés dans l'application>/…
  *       Comptes rendus/
  */
@@ -14,7 +15,7 @@ import * as drive from './drive';
 import { getBlob } from './files';
 import { idbGet, idbSet } from './idb';
 import { pastilleLabel } from './ids';
-import { DOSSIER_CR, dossierDe } from './dossiers';
+import { DOSSIER_CR, dossierDe, isImage } from './dossiers';
 import { contentSignature, mergeProjects } from './merge';
 
 const ROOT_KEY = 'atelier618.rootFolder';
@@ -177,6 +178,42 @@ async function moveDocuments(host: SyncHost, p: Project): Promise<Project> {
   return host.get(p.id)!;
 }
 
+/**
+ * Les photos ajoutées dans Documents sont aussi visibles dans « Photos / Photos » (séparé des
+ * dossiers de pastilles) grâce à un raccourci Drive, mis à jour si la photo est annotée.
+ */
+async function syncRaccourcisPhotos(host: SyncHost, p: Project): Promise<Project> {
+  const aFaire = p.documents.filter((d) => isImage(d) && d.file.driveId && d.driveRaccourci?.cible !== d.file.driveId);
+  if (!aFaire.length) return p;
+  let dossier = host.get(p.id)!.drive!.photosDocuments;
+  if (dossier) {
+    const f = await drive.getFile(dossier);
+    if (!f || f.trashed) dossier = undefined;
+  }
+  if (!dossier) {
+    const id = await drive.ensureFolder('Photos', host.get(p.id)!.drive!.photos);
+    await host.patch(p.id, (x) => { x.drive!.photosDocuments = id; });
+    dossier = id;
+  }
+  let i = 0;
+  for (const d0 of aFaire) {
+    host.onProgress(`Photos : raccourcis ${++i}/${aFaire.length}…`);
+    const d = host.get(p.id)!.documents.find((x) => x.id === d0.id);
+    if (!d?.file.driveId) continue;
+    // Photo ré-annotée : l'ancien raccourci pointe vers l'ancienne version
+    if (d.driveRaccourci) {
+      const old = await drive.getFile(d.driveRaccourci.id);
+      if (old && !old.trashed) await drive.trash(d.driveRaccourci.id);
+    }
+    const r = await drive.createShortcut(d.file.driveId, d.nom, dossier);
+    await host.patch(p.id, (x) => {
+      const y = x.documents.find((z) => z.id === d.id);
+      if (y) y.driveRaccourci = { id: r.id, cible: d.file.driveId! };
+    });
+  }
+  return host.get(p.id)!;
+}
+
 function setDriveParent(p: Project, driveId: string, parent: string) {
   for (const d of p.documents) for (const ref of [d.file, d.original]) if (ref?.driveId === driveId) ref.driveParent = parent;
 }
@@ -253,6 +290,7 @@ async function syncOne(host: SyncHost, id: string, root: string, remoteJson?: dr
   p = await syncDossiers(host, p);
   p = await uploadPending(host, p);
   p = await moveDocuments(host, p);
+  p = await syncRaccourcisPhotos(host, p);
 
   const m = await meta(id);
   const jsonFile = remoteJson ?? (m.jsonId ? (await drive.getFile(m.jsonId)) ?? undefined : undefined);

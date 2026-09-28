@@ -138,6 +138,8 @@ export interface DocumentFile extends Annotable {
   date: ISODate;
   /** Dossier de rangement (absent = racine « Documents »). */
   dossierId?: string;
+  /** Raccourci Drive vers la photo, rangé dans « Photos / Photos » (cible = fichier pointé). */
+  driveRaccourci?: { id: string; cible: string };
   /** Ancienne catégorie (avant les dossiers) ; « Compte rendu » = dossier Comptes rendus. */
   categorie?: string;
   updatedAt: number;
@@ -172,6 +174,8 @@ export interface DriveFolders {
   cr: string;
   /** Sous-dossiers Photos/P-012 déjà créés : numéro → id. */
   photosPastilles?: Record<string, string>;
+  /** Sous-dossier « Photos / Photos » : raccourcis vers les photos de Documents. */
+  photosDocuments?: string;
   /** Dossiers Drive de dossiers supprimés dans l'application, à mettre à la corbeille. */
   dossiersSupprimes?: string[];
 }
