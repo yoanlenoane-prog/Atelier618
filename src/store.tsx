@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Collection, Project } from './types';
+import { appliquerDependances } from './lib/planning';
 import { idbAll, idbDel, idbGet, idbSet } from './lib/idb';
 import { mergeProjects } from './lib/merge';
 import { isDirty, syncAll, type SyncHost } from './lib/sync';
@@ -225,6 +226,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (!prev) throw new Error('Projet introuvable');
         const next = structuredClone(prev);
         fn(next);
+        // Planning : les tâches liées suivent automatiquement la fin des tâches dont elles dépendent
+        if (JSON.stringify(prev.blocs) !== JSON.stringify(next.blocs)) appliquerDependances(next.blocs);
         if (!stamp(prev, next)) return prev;
         await commit(next);
         setSync((s) => ({ ...s, pending: Math.max(s.pending, 1) }));

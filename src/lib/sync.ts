@@ -69,12 +69,13 @@ export async function isDirty(p: Project): Promise<boolean> {
 
 interface RefCtx {
   ref: FileRef;
-  kind: 'plan' | 'photo' | 'document';
+  kind: 'plan' | 'photo' | 'document' | 'projet';
   numero?: number;
   doc?: DocumentFile;
 }
 
 function forEachRef(p: Project, cb: (c: RefCtx) => void) {
+  if (p.info.image) cb({ ref: p.info.image, kind: 'projet' });
   for (const pl of p.plans) {
     cb({ ref: pl.image, kind: 'plan' });
     if (pl.source) cb({ ref: pl.source, kind: 'plan' });
@@ -261,6 +262,7 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
     const f = cur.drive!;
     let parent = f.documents;
     if (c.kind === 'plan') parent = f.plans;
+    if (c.kind === 'projet') parent = f.projet;
     if (c.kind === 'document' && c.doc) parent = parentDocument(cur, c.doc) ?? f.documents;
     if (c.kind === 'photo') {
       const key = pastilleLabel(c.numero ?? 0);

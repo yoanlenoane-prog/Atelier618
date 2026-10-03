@@ -1,7 +1,9 @@
 import { useStore } from '../store';
 import { navigate } from '../router';
+import { IconSync } from './Icons';
 
-export function SyncPill() {
+/** Bouton d'état / de synchronisation Google Drive (compact : texte masqué sur téléphone). */
+export function SyncPill({ compact }: { compact?: boolean }) {
   const { sync, syncNow } = useStore();
   const label = (() => {
     switch (sync.status) {
@@ -16,12 +18,13 @@ export function SyncPill() {
   })();
   return (
     <button
-      className={'syncpill ' + sync.status}
+      className={'syncpill ' + sync.status + (compact ? ' compact' : '')}
       title={sync.message || label}
       onClick={() => (sync.status === 'local' ? navigate('/reglages') : syncNow(true))}
     >
       <i />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <IconSync className="syncpill-ico" />
+      <span className="syncpill-txt" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
     </button>
   );
 }

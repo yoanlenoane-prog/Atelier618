@@ -113,6 +113,29 @@ export function Gantt({ p }: { p: Project }) {
   }
   if (months.length) months[months.length - 1].width = width - months[months.length - 1].left;
 
+  // Flèches de dépendance (fin → début) entre les lignes visibles
+  const ROW_H = 46;
+  const rowTop = new Map<string, number>();
+  {
+    let i = 0;
+    for (const b of p.blocs) {
+      i++;
+      if (!closed[b.id]) for (const t of b.sousBlocs) rowTop.set(t.id, i++ * ROW_H);
+    }
+  }
+  const totalRows = p.blocs.reduce((n, b) => n + 1 + (closed[b.id] ? 0 : b.sousBlocs.length), 0);
+  const fleches: { key: string; d: string }[] = [];
+  for (const b of p.blocs)
+    for (const t of b.sousBlocs)
+      for (const dep of t.dependances || []) {
+        const pred = b.sousBlocs.find((x) => x.id === dep.id) ?? p.blocs.flatMap((x) => x.sousBlocs).find((x) => x.id === dep.id);
+        const y1 = rowTop.get(dep.id), y2 = rowTop.get(t.id);
+        if (!pred?.finPrevue || !t.debutPrevu || y1 === undefined || y2 === undefined) continue;
+        const x1 = x(addDays(pred.finPrevue, 1)), x2 = x(t.debutPrevu);
+        const ya = y1 + 14, yb = y2 + 14, ymid = yb > ya ? yb - 10 : yb + 10;
+        fleches.push({ key: dep.id + t.id, d: `M${x1} ${ya} H${x1 + 5} V${ymid} H${x2 - 7} V${yb} H${x2 - 1}` });
+      }
+
   const retards = sousBlocsEnRetard(p, auj);
   const finProjet = finEstimeeProjet(p, auj);
   const totalOuvertes = p.observations.filter(isOpen).length;
@@ -120,7 +143,7 @@ export function Gantt({ p }: { p: Project }) {
   if (!hasPlanning)
     return (
       <Empty title="Planning vide">
-        <p>Renseignez les dates prévues de vos sous-blocs pour afficher le Gantt.</p>
+        <p>Renseignez les dates prévues de vos tâches pour afficher le Gantt.</p>
         <a className="btn" href={href(`/p/${p.id}/structure`)}>Saisir la structure et les dates</a>
       </Empty>
     );
@@ -135,7 +158,7 @@ export function Gantt({ p }: { p: Project }) {
         </button>
         <span className="grow" />
         <span className={'tag ' + (retards.length ? 'late' : 'early')}>
-          {retards.length ? `${retards.length} sous-bloc${retards.length > 1 ? 's' : ''} en retard` : 'Aucun retard'}
+          {retards.length ? `${retards.length} tâche${retards.length > 1 ? 's' : ''} en retard` : 'Aucun retard'}
         </span>
         <a className={'tag ' + (totalOuvertes ? 'late' : 'line')} href={href(`/p/${p.id}/obs?statut=ouvertes`)} style={{ textDecoration: 'none' }}>
           {totalOuvertes} observation{totalOuvertes > 1 ? 's' : ''} non résolue{totalOuvertes > 1 ? 's' : ''}
@@ -154,7 +177,7 @@ export function Gantt({ p }: { p: Project }) {
         <div className="gantt-inner" style={{ width: labelW + width }}>
           <div className="g-head">
             <div className="g-corner" style={{ width: labelW }}>
-              <span className="eyebrow">Blocs / sous-blocs</span>
+              <span className="eyebrow">Lots / tâches</span>
             </div>
             <div className="g-scale" style={{ width, height: 46 }}>
               {months.map((m) => (
@@ -173,6 +196,16 @@ export function Gantt({ p }: { p: Project }) {
             </div>
             {zoom !== 'jour' &&
               months.map((m) => <div key={'g' + m.left} className="g-grid" style={{ left: labelW + m.left }} />)}
+            {fleches.length > 0 && (
+              <svg className="g-deps" style={{ left: labelW, width, height: totalRows * ROW_H }} aria-hidden>
+                <defs>
+                  <marker id="g-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+                    <path d="M0 0 L8 4 L0 8 z" fill="#1d1d1b" />
+                  </marker>
+                </defs>
+                {fleches.map((f) => <path key={f.key} d={f.d} markerEnd="url(#g-arrow)" />)}
+              </svg>
+            )}
 
             {p.blocs.map((bloc, bi) => {
               const isClosed = closed[bloc.id];
@@ -184,7 +217,7 @@ export function Gantt({ p }: { p: Project }) {
                       <IconCaret className={'caret' + (isClosed ? ' closed' : '')} />
                       <span className="code">{String(bi + 1).padStart(2, '0')}</span>
                       <span className="nm grow" title={bloc.nom}>{bloc.nom}</span>
-                      {openObsBloc > 0 && isClosed && <span className="tag late" title={`${openObsBloc} observation(s) non résolue(s) dans ce bloc`}>● {openObsBloc}</span>}
+                      {openObsBloc > 0 && isClosed && <span className="tag late" title={`${openObsBloc} observation(s) non résolue(s) dans ce lot`}>● {openObsBloc}</span>}
                     </div>
                     <div className="g-track" style={{ width }}>
                       <Bars bars={blocBars(bloc, auj)} start={dayNum(range.start)} dayW={dayW} />
@@ -199,6 +232,7 @@ export function Gantt({ p }: { p: Project }) {
                           <div className="g-label" style={{ width: labelW, paddingLeft: narrow ? 12 : 30 }} onClick={() => setEdit(sb.id)} title={`${sb.nom} — ${TASK_STATE_LABEL[a.state]}`}>
                             {!narrow && <span className="code">{String(bi + 1).padStart(2, '0')}.{String(si + 1).padStart(2, '0')}</span>}
                             <span className="nm grow">{sb.nom}</span>
+                            {sb.dependances?.length ? <span className="tiny muted" title="Démarre après la fin d’une autre tâche">⛓</span> : null}
                             {openObs > 0 && <span className="tag late" title={`${openObs} observation(s) non résolue(s)`}>● {openObs}</span>}
                           </div>
                           <div className="g-track" style={{ width, cursor: 'pointer' }} onClick={() => setEdit(sb.id)}>
@@ -221,6 +255,7 @@ export function Gantt({ p }: { p: Project }) {
         <span><i style={{ background: 'var(--early)' }} /> Terminé en avance</span>
         <span><i style={{ border: '1.5px dashed var(--ink-2)' }} /> Projection</span>
         <span><i style={{ width: 2, height: 14, background: 'var(--late)' }} /> Aujourd’hui</span>
+        <span>→ ⛓ Enchaînement : la tâche démarre après la fin d’une autre</span>
         <span><span className="tag late">● n</span> n observations non résolues (à faire / en cours) sur la ligne</span>
       </div>
       {edit && <SousBlocModal p={p} sousBlocId={edit} onClose={() => setEdit(null)} />}

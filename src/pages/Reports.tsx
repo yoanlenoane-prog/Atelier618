@@ -27,7 +27,12 @@ export function Reports({ p }: { p: Project }) {
         type: last?.type || 'avancement',
         concernes: last?.concernes ? [...last.concernes] : [CR_CHANTIER],
         afficherAvancement: last?.afficherAvancement ?? true,
-        participants: last?.participants || [p.info.architecte && `${p.info.architecte} — architecte`, ...p.info.entreprises.map((e) => e.nom)].filter(Boolean).join('\n'),
+        // Avec l'annuaire, les présents se cochent ; sinon liste libre pré-remplie comme avant
+        presents: last?.convoques?.length ? [...last.convoques] : last?.presents ? [...last.presents] : undefined,
+        participants: p.info.contacts?.length
+          ? ''
+          : last?.participants || [p.info.architecte && `${p.info.architecte} — architecte`, ...p.info.entreprises.map((e) => e.nom)].filter(Boolean).join('\n'),
+        inclureGanttEntreprises: last?.inclureGanttEntreprises ?? true,
         rubriques: {},
         observationIds: obsIds,
         mode: last?.mode || 'bloc',

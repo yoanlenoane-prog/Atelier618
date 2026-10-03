@@ -7,11 +7,12 @@ import { PROJECT_STATUS_LABEL } from '../lib/labels';
 import { blocsFromModele, emptyInfo, newProject } from '../lib/factory';
 import { createSample } from '../lib/sample';
 import { Modal, Progress, toast, useToday } from '../components/ui';
-import { IconPlus } from '../components/Icons';
+import { IconPlus, IconTrash } from '../components/Icons';
 import { SyncPill } from '../components/SyncPill';
 import { Logo } from '../components/Logo';
-import { InfoFields } from './ProjectInfo';
+import { InfoFields, supprimerProjet } from './ProjectInfo';
 import type { ProjectInfo } from '../types';
+
 
 export function Home() {
   const store = useStore();
@@ -45,7 +46,8 @@ export function Home() {
           const ouvertes = p.observations.filter(isOpen).length;
           const retards = sousBlocsEnRetard(p, auj).length;
           return (
-            <a key={p.id} className="proj-card" href={href(`/p/${p.id}`)}>
+            <div key={p.id} className="proj-wrap">
+            <a className="proj-card" href={href(`/p/${p.id}`)}>
               <div className="row between">
                 <span className="num">N° {String(p.info.numero).padStart(2, '0')}</span>
                 <span className="tag line">{PROJECT_STATUS_LABEL[p.info.statut]}</span>
@@ -63,12 +65,21 @@ export function Home() {
                   <span className={'tag ' + (ouvertes ? 'late' : '')}>
                     {ouvertes} observation{ouvertes > 1 ? 's' : ''} ouverte{ouvertes > 1 ? 's' : ''}
                   </span>
-                  {retards > 0 && <span className="tag late">{retards} en retard</span>}
+                  {retards > 0 && <span className="tag late">{retards} tâche{retards > 1 ? 's' : ''} en retard</span>}
                 </div>
               </div>
               <Progress value={pct} />
               <div className="tiny muted">Fin prévue : {fmt(p.info.dateFinPrevue)}</div>
             </a>
+            <button
+              className="btn danger sm icon proj-del"
+              aria-label={`Supprimer le projet ${p.info.nom}`}
+              title="Supprimer le projet"
+              onClick={() => supprimerProjet(store, p)}
+            >
+              <IconTrash />
+            </button>
+            </div>
           );
         })}
         <button className="newcard" onClick={() => setCreating(true)}>

@@ -2,7 +2,7 @@
 
 Atelier 618 est votre carnet de chantier numérique. Il réunit au même endroit le **planning (Gantt)**, les **plans avec pastilles**, les **observations** (texte + photos) et les **comptes rendus**. Toutes les données sont enregistrées dans **votre Google Drive**.
 
-> Principe clé : une information n’est saisie qu’une seule fois. Une pastille P-021 apparaît à la fois sur le plan, dans la liste des observations, dans le sous-bloc concerné, dans le Gantt et dans les comptes rendus. Si vous la modifiez, elle est mise à jour partout.
+> Principe clé : une information n’est saisie qu’une seule fois. Une pastille P-021 apparaît à la fois sur le plan, dans la liste des observations, dans la tâche concernée, dans le Gantt et dans les comptes rendus. Si vous la modifiez, elle est mise à jour partout.
 
 ## 1. Première configuration (une seule fois)
 
@@ -57,22 +57,31 @@ Un dossier `ChantierApp / 01 - Nom du projet` est créé automatiquement dans vo
 
 Les informations (maître d’ouvrage, maître d’œuvre, entreprises, statut…) se modifient dans **Informations**. C’est aussi là que vous pouvez supprimer un projet (son dossier Drive part à la corbeille, récupérable 30 jours).
 
-## 3. Organiser le chantier : blocs et sous-blocs
 
-Menu **Blocs & sous-blocs**.
+### Supprimer un projet
 
-- Un **bloc** est une grande catégorie de travaux (ex. 01 — GROS ŒUVRE).
-- Un **sous-bloc** est un lot ou une tâche (ex. 01.03 — Murs).
-- Boutons **Nouveau bloc**, **+ Sous-bloc**, flèches pour réordonner, corbeille pour supprimer.
-- Cliquez sur un sous-bloc pour saisir ses dates et son entreprise.
+Sur la page **Mes projets**, la corbeille en bas à droite de la carte du projet (ou **Informations → Supprimer le projet**). Une confirmation est demandée ; le dossier Google Drive du projet est placé dans la corbeille de Drive (récupérable 30 jours).
 
-Pour chaque sous-bloc, renseignez :
+## 3. Organiser le chantier : lots et tâches
+
+Menu **Lots & tâches**.
+
+- Un **lot** est une grande catégorie de travaux (ex. 01 — GROS ŒUVRE).
+- Une **tâche** est une étape de ce lot (ex. 01.03 — Murs).
+- Boutons **Nouveau lot**, **+ Tâche**, flèches pour réordonner, corbeille pour supprimer.
+- Cliquez sur une tâche pour saisir ses dates et son entreprise.
+
+Pour chaque tâche, renseignez :
 
 - **Début prévu / Fin prévue** : la planification initiale ;
 - **Début réel / Fin réelle** : ce qui s’est réellement passé (boutons rapides « Démarré aujourd’hui » et « Terminé aujourd’hui ») ;
 - **Avancement estimé** (curseur en %) pour une tâche en cours.
 
-Les dates d’un bloc sont **calculées automatiquement** à partir de ses sous-blocs : inutile de les saisir.
+Les dates d’un lot sont **calculées automatiquement** à partir de ses tâches : inutile de les saisir.
+
+### Enchaîner des tâches (dépendances)
+
+Dans la fiche d’une tâche (clic sur sa ligne dans le Gantt), rubrique **Enchaînement — démarre après la fin de…**, choisissez la ou les tâches qui doivent être terminées avant. Le **début prévu** est alors calculé automatiquement (le lendemain de la fin prévue de la tâche précédente, plus le délai « + j » éventuel) et la durée de la tâche est conservée. Si la tâche précédente est décalée, toutes les tâches qui en dépendent se décalent en chaîne. Dans le Gantt, une flèche relie les tâches enchaînées et le symbole ⛓ les signale.
 
 Cette même structure sert partout : Gantt, observations, comptes rendus, recherche.
 
@@ -89,19 +98,19 @@ Menu **Gantt**. Chaque ligne affiche deux barres :
 
 À droite des barres, une étiquette indique l’écart : **Retard +7 j** (rouge) ou **Avance −4 j** (vert). La mention « (est.) » signifie que l’écart est une estimation (tâche pas encore terminée).
 
-À côté d’un sous-bloc, une pastille rouge **● n** indique le nombre d’observations **non résolues** (à faire ou en cours) de ce sous-bloc. Elle disparaît dès que toutes ses observations sont passées à « Terminé » ou « Sans suite ». Quand un bloc est réduit, sa pastille totalise ses sous-blocs. Le total du projet est affiché en haut du Gantt (cliquez dessus pour voir la liste).
+À côté d’une tâche, une pastille rouge **● n** indique le nombre d’observations **non résolues** (à faire ou en cours) de cette tâche. Elle disparaît dès que toutes ses observations sont passées à « Terminé » ou « Sans suite ». Quand un lot est réduit, sa pastille totalise ses tâches. Le total du projet est affiché en haut du Gantt (cliquez dessus pour voir la liste).
 
 Astuces :
 
 - **Jours / Semaines / Mois** : change l’échelle.
 - **Aujourd’hui** : recentre sur la date du jour.
-- Cliquez sur le nom d’un bloc pour le **réduire ou le développer** ; **Tout réduire** donne une vue globale.
+- Cliquez sur le nom d’un lot pour le **réduire ou le développer** ; **Tout réduire** donne une vue globale.
 - Cliquez sur une ligne pour modifier ses dates.
 
 ### Exporter le Gantt en PDF
 
 1. Cliquez sur **Exporter en PDF** (en haut du Gantt).
-2. Choisissez **Blocs et sous-blocs** ou **Blocs seuls**.
+2. Choisissez **Lots et tâches** ou **Lots seuls**.
 3. Cliquez sur **Créer le PDF** : le fichier est téléchargé et, si la case est cochée, une copie est rangée dans **Documents** (à la racine), donc dans Google Drive.
 
 Le PDF est **à l’horizontale (paysage)** et sa **taille s’adapte automatiquement à la durée du chantier** : A4 pour un chantier de quelques mois, puis A3, A2… pour les chantiers plus longs, afin que tout le planning tienne sur la largeur de la page. La fenêtre d’export indique le format retenu avant de créer le fichier. S’il y a beaucoup de lignes, le Gantt continue sur une deuxième page.
@@ -124,7 +133,7 @@ Le fichier original est enregistré dans le dossier **Plans** de Drive. Utilisez
 
 1. Cliquez sur **+ Pastille** (le bouton devient « Touchez le plan… »).
 2. Touchez l’endroit concerné sur le plan.
-3. La pastille reçoit automatiquement le numéro suivant (P-001, P-002…) et sa fiche s’ouvre : titre, statut, bloc/sous-bloc, photos, texte.
+3. La pastille reçoit automatiquement le numéro suivant (P-001, P-002…) et sa fiche s’ouvre : titre, statut, lot/tâche, photos, texte. Sur le plan, **un clic sur une pastille ouvre directement sa fiche** pour la modifier (téléphone et ordinateur).
 
 La position est enregistrée en **pourcentage** du plan : elle reste juste quel que soit l’écran.
 
@@ -150,14 +159,14 @@ Menu **Observations** (ou clic sur une pastille → **Ouvrir la fiche**).
 Une observation contient :
 
 - un **titre**, un **statut** (À faire / En cours / Terminé / Sans suite), une **date** ;
-- le **bloc / sous-bloc** concerné et l’**entreprise** ;
+- le **lot / la tâche** concerné(e) et l’**entreprise** ;
 - un **contenu** libre : alternez **paragraphes** et **photos** dans l’ordre que vous voulez (flèches pour réordonner) ;
 - une **action demandée** et une **échéance** ;
 - un **historique** : chaque changement de statut y est noté automatiquement ; ajoutez vos propres étapes (« Entreprise informée », « Travaux commencés »…).
 
 Tout est **enregistré automatiquement**, il n’y a pas de bouton « Enregistrer ».
 
-La liste peut être affichée **par pastille** ou **par bloc / sous-bloc**, et filtrée par statut, bloc, sous-bloc ou mot-clé.
+La liste peut être affichée **par pastille** ou **par lot / tâche**, et filtrée par statut, lot, tâche ou mot-clé.
 
 Les photos sont rangées dans Drive dans `Photos / P-012 /`. Elles sont automatiquement allégées (≈ 2000 px) pour économiser l’espace.
 
@@ -172,7 +181,7 @@ Créer une observation en quelques secondes :
 1. Ouvrez le projet, touchez le bouton rond **+** en bas à droite.
 2. Touchez l’endroit du problème sur le plan.
 3. Tapez un titre, touchez **Photo** pour prendre une ou plusieurs photos.
-4. Choisissez le sous-bloc, ajoutez un paragraphe si besoin.
+4. Choisissez la tâche, ajoutez un paragraphe si besoin.
 5. Touchez **Valider**.
 
 Le soir, sur l’ordinateur, la pastille, ses photos et son texte sont déjà là.
@@ -183,13 +192,21 @@ Le soir, sur l’ordinateur, la pastille, ses photos et son texte sont déjà l�
 
 Menu **Comptes rendus → Nouveau compte rendu**.
 
-1. Le numéro, la date et les participants (repris du CR précédent) sont pré-remplis.
-2. Les **observations ouvertes** et celles modifiées depuis le dernier CR sont cochées automatiquement : ajustez la sélection.
-3. Écrivez sous chaque **rubrique** (bloc et sous-bloc). Les rubriques vides n’apparaissent pas.
-4. Choisissez la présentation : **par bloc / sous-bloc** ou **par pastille** — même contenu, sans double saisie.
+1. Le numéro et la date sont pré-remplis ; les personnes convoquées au compte rendu précédent sont cochées comme présentes.
+2. Choisissez l’**objet** : avancement de chantier, réunion ou observation (avec les entreprises concernées).
+3. **Personnes présentes** : cochez les personnes de l’annuaire du projet (agence, client, entreprises et la personne qui suit le chantier, autres prestataires — avec téléphone et e-mail). **Ajouter une personne** l’enregistre dans l’annuaire pour les prochains comptes rendus (l’annuaire se gère aussi dans **Informations**).
+4. **Intempéries** : date, nature et jours d’arrêt ; la case **Inclure dans le compte rendu** décide si elles apparaissent.
+5. **Interventions prévues dans les semaines à venir** : texte libre, indépendant du Gantt.
+6. **Prochaine réunion / prochain rendez-vous** : date, heure et sujet. **Convoquer** : cochez les personnes à convoquer et laissez-leur un message ; **Préparer l’e-mail de convocation** ouvre votre messagerie avec les destinataires et le texte. La convocation figure aussi en fin de compte rendu.
+7. Les **observations ouvertes** et celles modifiées depuis le dernier CR sont cochées automatiquement : ajustez la sélection. Chaque pastille cochée apparaît automatiquement sous la **rubrique de sa tâche**.
+8. Écrivez sous chaque **rubrique** (lot et tâche). Les rubriques vides n’apparaissent pas.
+9. Choisissez la présentation : **par lot / tâche** ou **par pastille** — même contenu, sans double saisie.
 5. Cochez **Inclure les plans avec les pastilles** pour montrer la localisation des observations.
 6. Cochez ou décochez **Inclure le paragraphe « Planning — points de vigilance »** selon que vous voulez faire apparaître les retards du planning dans le compte rendu.
-7. Onglet **Aperçu** pour relire.
+7. Pour un compte rendu d’**avancement**, la case **Afficher le planning (Gantt) des tâches des entreprises concernées** ajoute un extrait du Gantt (prévu / réel) limité à ces entreprises (toutes si « Chantier » est coché).
+
+L’**image du projet** (perspective, photo — à choisir dans **Informations**) s’affiche en haut à droite du compte rendu, à côté des informations du projet.
+8. Onglet **Aperçu** pour relire.
 
 ### Exporter en PDF
 
@@ -205,7 +222,7 @@ Tous les comptes rendus restent accessibles dans la liste ; depuis une observati
 
 L’onglet **Vue d’ensemble** (menu de gauche, ou « Ensemble » en bas sur téléphone) regroupe tous les chantiers actifs (hors projets terminés ou suspendus) : observations ouvertes, **échéances dépassées**, **lots en retard** et tout ce qui est prévu **dans les 14 prochains jours** (débuts et fins de lots, échéances, prochaines visites). Chaque ligne ouvre directement l’élément concerné ; la case **Chantiers actifs** ramène à **Mes projets**.
 
-Le **Tableau de bord** d’un projet résume le projet : avancement estimé, jours restants, sous-blocs en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
+Le **Tableau de bord** d’un projet résume le projet : avancement estimé, jours restants, tâches en retard, observations ouvertes, dernières visites, dernières photos et prochaines échéances.
 
 Le menu **Entreprises** présente une fiche par entreprise (celles des Informations et celles citées dans les observations ou le planning) : observations ouvertes, échéances dépassées, planning de ses lots, observations levées. **Imprimer / PDF (relance)** produit une fiche à envoyer à l’entreprise.
 
@@ -217,14 +234,14 @@ Icône loupe en haut de l’écran. Tapez :
 
 - un numéro de pastille : `P-021` ou `21` ;
 - un mot : `électricité`, `gaine` ;
-- une entreprise, un bloc, un sous-bloc ;
+- une entreprise, un lot, une tâche ;
 - une date : `23/09/2026`.
 
-Les résultats sont regroupés par type : pastilles, comptes rendus, sous-blocs, plans, documents…
+Les résultats sont regroupés par type : pastilles, comptes rendus, tâches, plans, documents…
 
 ## 11. Synchronisation et hors connexion
 
-L’indicateur en bas du menu (ou sur l’accueil) montre l’état :
+Le bouton de synchronisation est présent **sur toutes les pages**, en haut à droite (sur téléphone : l’icône ↻ seule). Touchez-le pour synchroniser immédiatement. Il montre l’état :
 
 - **vert — Synchronisé avec Drive** : tout est à jour ;
 - **ocre clignotant** : synchronisation en cours ;

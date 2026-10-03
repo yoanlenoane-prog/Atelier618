@@ -234,3 +234,61 @@ export function finEstimeeProjet(p: Project, auj: ISODate): ISODate | undefined 
     .sort()
     .pop();
 }
+
+/** Toutes les tâches (sous-blocs) du projet, à plat. */
+export function toutesTaches(blocs: Bloc[]): SousBloc[] {
+  return blocs.flatMap((b) => b.sousBlocs);
+}
+
+/** Tâches dont dépend (directement ou non) la tâche `id` — pour éviter les boucles. */
+export function predecesseurs(blocs: Bloc[], id: string): Set<string> {
+  const map = new Map(toutesTaches(blocs).map((t) => [t.id, t]));
+  const out = new Set<string>();
+  const visit = (x: string) => {
+    for (const d of map.get(x)?.dependances || [])
+      if (!out.has(d.id)) {
+        out.add(d.id);
+        visit(d.id);
+      }
+  };
+  visit(id);
+  return out;
+}
+
+/** Début imposé par les dépendances « fin → début » (undefined si aucune n'est datée). */
+export function debutContraint(t: SousBloc, taches: Map<string, SousBloc>): ISODate | undefined {
+  let best: ISODate | undefined;
+  for (const d of t.dependances || []) {
+    const pred = taches.get(d.id);
+    if (!pred?.finPrevue) continue;
+    const debut = addDays(pred.finPrevue, 1 + (d.decalage || 0));
+    if (!best || debut > best) best = debut;
+  }
+  return best;
+}
+
+/**
+ * Recale les dates prévues des tâches dépendantes : chaque tâche liée démarre le lendemain
+ * de la fin prévue de sa (ses) tâche(s) précédente(s) + décalage, en conservant sa durée.
+ * Modifie `blocs` sur place ; renvoie le nombre de tâches déplacées.
+ */
+export function appliquerDependances(blocs: Bloc[]): number {
+  const taches = new Map(toutesTaches(blocs).map((t) => [t.id, t]));
+  const moved = new Set<string>();
+  // Itérations successives pour propager les chaînes (A → B → C) ; borné pour éviter toute boucle
+  for (let pass = 0; pass <= taches.size; pass++) {
+    let change = false;
+    for (const t of taches.values()) {
+      if (!t.dependances?.length) continue;
+      const debut = debutContraint(t, taches);
+      if (!debut || debut === t.debutPrevu) continue;
+      const dur = t.debutPrevu && t.finPrevue ? duree(t.debutPrevu, t.finPrevue) : 1;
+      t.debutPrevu = debut;
+      t.finPrevue = addDays(debut, dur - 1);
+      moved.add(t.id);
+      change = true;
+    }
+    if (!change) break;
+  }
+  return moved.size;
+}

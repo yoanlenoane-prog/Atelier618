@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Project, SousBloc } from '../types';
 import { useStore } from '../store';
-import { analyseSousBloc, codeSousBloc, formatEcart, TASK_STATE_LABEL } from '../lib/planning';
+import { analyseSousBloc, codeSousBloc, debutContraint, duree, formatEcart, predecesseurs, TASK_STATE_LABEL, toutesTaches } from '../lib/planning';
+import { addDays } from '../lib/dates';
 import { fmt } from '../lib/dates';
 import { href } from '../router';
 import { Modal, useToday } from './ui';
@@ -18,6 +19,39 @@ export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBloc
   const a = analyseSousBloc(sb, auj);
   const obs = p.observations.filter((o) => o.sousBlocId === sousBlocId).sort((x, y) => x.numero - y.numero);
   const set = <K extends keyof SousBloc>(k: K, v: SousBloc[K]) => setSb({ ...sb, [k]: v });
+
+  // Dépendances : tâches possibles = toutes sauf elle-même et celles qui dépendent déjà d'elle (boucle)
+  const deps = sb.dependances || [];
+  const candidats = p.blocs.map((b) => ({
+    bloc: b,
+    taches: b.sousBlocs.filter((t) => t.id !== sb.id && !predecesseurs(p.blocs, t.id).has(sb.id)),
+  }));
+  const debutCalcule = deps.length ? debutContraint(sb, new Map(toutesTaches(p.blocs).map((t) => [t.id, t]))) : undefined;
+  const setDeps = (list: NonNullable<SousBloc['dependances']>) => {
+    const next = { ...sb, dependances: list.length ? list : undefined };
+    // Aperçu immédiat des nouvelles dates (recalculées aussi à l'enregistrement)
+    const d = debutContraint(next, new Map(toutesTaches(p.blocs).map((t) => [t.id, t])));
+    if (d) {
+      const dur = sb.debutPrevu && sb.finPrevue ? duree(sb.debutPrevu, sb.finPrevue) : 1;
+      next.debutPrevu = d;
+      next.finPrevue = addDays(d, dur - 1);
+    }
+    setSb(next);
+  };
+  const selectTache = (value: string, onChange: (id: string) => void, placeholder?: string) => (
+    <select value={value} onChange={(e) => onChange(e.target.value)} style={{ flex: 1, minWidth: 180 }}>
+      {placeholder && <option value="">{placeholder}</option>}
+      {candidats.map(({ bloc: b, taches }) =>
+        taches.length ? (
+          <optgroup key={b.id} label={b.nom}>
+            {taches.map((t) => (
+              <option key={t.id} value={t.id}>{codeSousBloc(p, t.id)} — {t.nom}{t.finPrevue ? ` (fin ${fmt(t.finPrevue)})` : ''}</option>
+            ))}
+          </optgroup>
+        ) : null
+      )}
+    </select>
+  );
 
   const save = async () => {
     await store.update(p.id, (d) => {
@@ -74,9 +108,34 @@ export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBloc
             </datalist>
           </label>
         </div>
+        <div className="eyebrow">Enchaînement — démarre après la fin de…</div>
+        <div className="stack" style={{ gap: 8 }}>
+          {deps.map((d, i) => (
+            <div key={i} className="row wrap" style={{ gap: 6 }}>
+              {selectTache(d.id, (id) => setDeps(deps.map((x, j) => (j === i ? { ...x, id } : x))))}
+              <label className="row small" style={{ gap: 6 }}>
+                + <input type="number" min={0} value={d.decalage || 0} style={{ width: 70 }} onChange={(e) => setDeps(deps.map((x, j) => (j === i ? { ...x, decalage: Math.max(0, Number(e.target.value) || 0) } : x)))} /> j
+              </label>
+              <button className="btn danger sm icon" aria-label="Retirer la dépendance" onClick={() => setDeps(deps.filter((_, j) => j !== i))}>×</button>
+            </div>
+          ))}
+          {selectTache('', (id) => id && setDeps([...deps, { id }]), deps.length ? '+ Ajouter une autre tâche…' : '+ Lier à la fin d’une tâche…')}
+          {deps.length > 0 && (
+            <div className="small muted">
+              Le début prévu est calculé automatiquement{debutCalcule ? ` : ${fmt(debutCalcule)}` : ' dès que les tâches précédentes ont une fin prévue'} (la durée de la tâche est conservée). Le « + j » ajoute un délai après la fin.
+            </div>
+          )}
+        </div>
         <div className="eyebrow">Planification (prévisionnel)</div>
         <div className="form-grid">
-          {date('debutPrevu', 'Début prévu')}
+          {deps.length > 0 ? (
+            <label className="f">
+              Début prévu (calculé)
+              <input type="date" value={sb.debutPrevu || ''} disabled />
+            </label>
+          ) : (
+            date('debutPrevu', 'Début prévu')
+          )}
           {date('finPrevue', 'Fin prévue')}
         </div>
         <div className="eyebrow">Réalisation (réel)</div>
@@ -96,7 +155,7 @@ export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBloc
         )}
         <div>
           <div className="eyebrow" style={{ marginBottom: 6 }}>Observations liées ({obs.length})</div>
-          {obs.length === 0 && <div className="muted small">Aucune observation sur ce sous-bloc.</div>}
+          {obs.length === 0 && <div className="muted small">Aucune observation sur cette tâche.</div>}
           <div className="list">
             {obs.map((o) => (
               <a key={o.id} className="item" href={href(`/p/${p.id}/obs/${o.id}`)}>

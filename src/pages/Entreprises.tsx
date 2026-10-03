@@ -38,13 +38,13 @@ export function Entreprises({ p, cle }: { p: Project; cle?: string }) {
         <div>
           <h2>Entreprises</h2>
           <div className="small muted">
-            Ce qui reste à faire pour chaque entreprise : observations ouvertes, échéances dépassées, lots en retard. Ouvrez une fiche pour l’imprimer et l’envoyer en relance.
+            Ce qui reste à faire pour chaque entreprise : observations ouvertes, échéances dépassées, tâches en retard. Ouvrez une fiche pour l’imprimer et l’envoyer en relance.
           </div>
         </div>
       </div>
       {fiches.length === 0 ? (
         <Empty title="Aucune entreprise">
-          <p>Ajoutez les entreprises dans <a href={href(`/p/${p.id}/infos`)}>Informations</a>, puis attribuez-leur des lots et des observations.</p>
+          <p>Ajoutez les entreprises dans <a href={href(`/p/${p.id}/infos`)}>Informations</a>, puis attribuez-leur des tâches et des observations.</p>
         </Empty>
       ) : (
         <div className="grid c3">
@@ -59,12 +59,12 @@ export function Entreprises({ p, cle }: { p: Project; cle?: string }) {
                 <div className="row wrap" style={{ gap: 6 }}>
                   <span className={'tag ' + (f.ouvertes.length ? 'prog' : '')}>{f.ouvertes.length} observation{f.ouvertes.length > 1 ? 's' : ''} ouverte{f.ouvertes.length > 1 ? 's' : ''}</span>
                   {f.echues.length > 0 && <span className="tag late">{f.echues.length} échéance{f.echues.length > 1 ? 's' : ''} dépassée{f.echues.length > 1 ? 's' : ''}</span>}
-                  {f.lotsEnRetard.length > 0 && <span className="tag late">{f.lotsEnRetard.length} lot{f.lotsEnRetard.length > 1 ? 's' : ''} en retard</span>}
+                  {f.lotsEnRetard.length > 0 && <span className="tag late">{f.lotsEnRetard.length} tâche{f.lotsEnRetard.length > 1 ? 's' : ''} en retard</span>}
                   {!f.ouvertes.length && !f.lotsEnRetard.length && <span className="tag early">À jour</span>}
                 </div>
                 {avancement !== undefined && (
                   <div>
-                    <div className="tiny muted" style={{ marginBottom: 4 }}>{f.lots.length} lot{f.lots.length > 1 ? 's' : ''} · avancement {avancement} %</div>
+                    <div className="tiny muted" style={{ marginBottom: 4 }}>{f.lots.length} tâche{f.lots.length > 1 ? 's' : ''} · avancement {avancement} %</div>
                     <Progress value={avancement} />
                   </div>
                 )}
@@ -95,7 +95,7 @@ function FicheDocument({ p, f, auj }: { p: Project; f: FicheEntreprise; auj: str
 
       <dl className="r-meta">
         <dt>Chantier</dt><dd>{p.info.nom}{p.info.adresse && ` — ${p.info.adresse}`}</dd>
-        {f.lot && (<><dt>Lot</dt><dd>{f.lot}</dd></>)}
+        {f.lot && (<><dt>Corps d’état</dt><dd>{f.lot}</dd></>)}
         {f.contact && (<><dt>Contact</dt><dd>{f.contact}</dd></>)}
         <dt>Observations ouvertes</dt><dd>{f.ouvertes.length}{f.echues.length > 0 && ` dont ${f.echues.length} avec échéance dépassée`}</dd>
       </dl>
@@ -123,9 +123,9 @@ function FicheDocument({ p, f, auj }: { p: Project; f: FicheEntreprise; auj: str
 
       {f.lots.length > 0 && (
         <>
-          <h2>Planning des lots</h2>
+          <h2>Planning des tâches</h2>
           <table>
-            <thead><tr><th>Lot</th><th>Prévu</th><th>Réel</th><th>État</th><th>Écart</th></tr></thead>
+            <thead><tr><th>Tâche</th><th>Prévu</th><th>Réel</th><th>État</th><th>Écart</th></tr></thead>
             <tbody>
               {f.lots.map(({ sb, a }) => (
                 <tr key={sb.id}>

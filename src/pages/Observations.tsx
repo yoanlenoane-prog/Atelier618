@@ -97,7 +97,7 @@ export function Observations({ p, query }: { p: Project; query: URLSearchParams 
           <BlocSelect p={p} blocId={bloc.b} sousBlocId={bloc.s} onChange={(b, s) => setBloc({ b, s })} />
         </div>
         <div className="row between wrap" style={{ marginTop: 12 }}>
-          <Seg value={mode} onChange={(m) => { setMode(m); localStorage.setItem('obs.mode', m); }} options={[['pastille', 'Par pastille'], ['bloc', 'Par bloc / sous-bloc']]} />
+          <Seg value={mode} onChange={(m) => { setMode(m); localStorage.setItem('obs.mode', m); }} options={[['pastille', 'Par pastille'], ['bloc', 'Par lot / tâche']]} />
           <span className="small muted">{list.length} résultat{list.length > 1 ? 's' : ''}</span>
         </div>
       </div>

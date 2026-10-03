@@ -9,9 +9,9 @@ export interface FicheEntreprise {
   nom: string;
   lot?: string;
   contact?: string;
-  /** Lots (sous-blocs) attribués à l'entreprise. */
+  /** Tâches (sous-blocs) attribuées à l'entreprise. */
   lots: { bloc: Bloc; sb: SousBloc; a: TaskAnalysis }[];
-  /** Lots non terminés en retard (démarrage ou fin). */
+  /** Tâches non terminées en retard (démarrage ou fin). */
   lotsEnRetard: { bloc: Bloc; sb: SousBloc; a: TaskAnalysis }[];
   ouvertes: Observation[];
   /** Observations ouvertes dont l'échéance est dépassée. */

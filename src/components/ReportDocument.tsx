@@ -1,7 +1,8 @@
-import type { CompteRendu, Observation, Project } from '../types';
+import type { CompteRendu, Contact, Observation, Project } from '../types';
 import { fmt, fmtLong } from '../lib/dates';
 import { pastilleLabel } from '../lib/ids';
-import { OBS_STATUS_LABEL, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants } from '../lib/labels';
+import { CONTACT_CATEGORIE, OBS_STATUS_LABEL, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants } from '../lib/labels';
+import { ReportGantt, tachesConcernees } from './ReportGantt';
 import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
 import { FileImage } from './FileImage';
 import { PlanView } from './PlanView';
@@ -45,6 +46,29 @@ export function ObsBlock({ p, o, showLoc }: { p: Project; o: Observation; showLo
 }
 
 /** Mise en page du compte rendu (aperçu, impression, PDF). */
+/** Tableau de personnes (présentes, convoquées), groupées par catégorie. */
+function ContactsTable({ list }: { list: Contact[] }) {
+  const ordre = CONTACT_CATEGORIE.map(([k]) => k);
+  const tri = [...list].sort((a, b) => ordre.indexOf(a.categorie) - ordre.indexOf(b.categorie) || a.societe.localeCompare(b.societe, 'fr'));
+  const lbl = Object.fromEntries(CONTACT_CATEGORIE);
+  return (
+    <table>
+      <thead><tr><th>Qualité</th><th>Société</th><th>Nom</th><th>Téléphone</th><th>E-mail</th></tr></thead>
+      <tbody>
+        {tri.map((c) => (
+          <tr key={c.id}>
+            <td>{lbl[c.categorie]}</td>
+            <td>{c.societe || '—'}</td>
+            <td>{c.nom || '—'}</td>
+            <td className="nowrap">{c.tel || '—'}</td>
+            <td style={{ wordBreak: 'break-all' }}>{c.email || '—'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; auj: string }) {
   const obs = cr.observationIds.map((id) => p.observations.find((o) => o.id === id)).filter((o): o is Observation => !!o).sort((a, b) => a.numero - b.numero);
   const retards = sousBlocsEnRetard(p, cr.date <= auj ? cr.date : auj);
@@ -53,6 +77,15 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
   const rub = (id: string) => (cr.rubriques[id] || '').trim();
   const participants = crParticipants(cr);
   const concernes = crConcernesLabel(cr);
+  const reunion = cr.type === 'reunion';
+  const contacts = p.info.contacts || [];
+  const presents = contacts.filter((c) => cr.presents?.includes(c.id));
+  const convoques = contacts.filter((c) => cr.convoques?.includes(c.id));
+  const intemperies = cr.inclureIntemperies !== false ? (cr.intemperies || []).filter((i) => i.nature.trim() || i.jours) : [];
+  const joursArret = intemperies.reduce((n, i) => n + (i.jours || 0), 0);
+  const refDate = cr.date <= auj ? cr.date : auj;
+  const ganttEntreprises = (cr.type || 'avancement') === 'avancement' && cr.inclureGanttEntreprises !== false && tachesConcernees(p, cr).length > 0;
+  const rdv = cr.prochaineVisite ? `${fmtLong(cr.prochaineVisite)}${cr.prochaineHeure ? ` à ${cr.prochaineHeure}` : ''}` : '';
 
   return (
     <article className="report">
@@ -71,19 +104,33 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
       </div>
 
       <h1 style={{ fontSize: 28, marginBottom: 10 }}>{p.info.nom}</h1>
+      <div className="r-top">
       <dl className="r-meta">
         {p.info.adresse && (<><dt>Adresse</dt><dd>{p.info.adresse}</dd></>)}
         {p.info.maitreOuvrage && (<><dt>Maître d’ouvrage</dt><dd>{p.info.maitreOuvrage}</dd></>)}
         {p.info.maitreOeuvre && (<><dt>Maître d’œuvre</dt><dd>{p.info.maitreOeuvre}</dd></>)}
         <dt>Objet</dt><dd>{REPORT_TYPE_LABEL[cr.type || 'avancement']}</dd>
         {concernes && (<><dt>Concerne</dt><dd>{concernes}</dd></>)}
-        {participants.length > 0 && (<><dt>Participants</dt><dd style={{ whiteSpace: 'pre-line' }}>{participants.join('\n')}</dd></>)}
+        {participants.length > 0 && (<><dt>{presents.length ? 'Autres participants' : 'Participants'}</dt><dd style={{ whiteSpace: 'pre-line' }}>{participants.join('\n')}</dd></>)}
         {cr.meteo && (<><dt>Météo</dt><dd>{cr.meteo}</dd></>)}
         {cr.afficherAvancement !== false && (
           <><dt>Avancement estimé</dt><dd>{avancementProjet(p, cr.date)} %{p.info.dateFinPrevue && ` — fin prévue le ${fmt(p.info.dateFinPrevue)}`}</dd></>
         )}
-        {cr.prochaineVisite && (<><dt>Prochaine visite</dt><dd>{fmtLong(cr.prochaineVisite)}</dd></>)}
+        {rdv && (<><dt>{reunion ? 'Prochaine réunion' : 'Prochaine visite'}</dt><dd>{rdv}{cr.prochaineSujet && ` — ${cr.prochaineSujet}`}</dd></>)}
       </dl>
+      {p.info.image && (
+        <div className="r-img">
+          <FileImage file={p.info.image} alt={`Image du projet ${p.info.nom}`} />
+        </div>
+      )}
+      </div>
+
+      {presents.length > 0 && (
+        <>
+          <h2>Personnes présentes</h2>
+          <ContactsTable list={presents} />
+        </>
+      )}
 
       {cr.notesGenerales?.trim() && (
         <>
@@ -92,11 +139,39 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
         </>
       )}
 
+      {intemperies.length > 0 && (
+        <>
+          <h2>Intempéries</h2>
+          <table>
+            <thead><tr><th>Date</th><th>Nature</th><th>Jours d’arrêt</th></tr></thead>
+            <tbody>
+              {intemperies.map((i) => (
+                <tr key={i.id}>
+                  <td className="nowrap">{fmt(i.date)}</td>
+                  <td>{i.nature || '—'}</td>
+                  <td className="nowrap">{i.jours ?? '—'}</td>
+                </tr>
+              ))}
+              {joursArret > 0 && (
+                <tr><td /><td style={{ fontWeight: 700 }}>Total</td><td style={{ fontWeight: 700 }}>{joursArret} j</td></tr>
+              )}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {ganttEntreprises && (
+        <>
+          <h2>Planning des entreprises concernées</h2>
+          <ReportGantt p={p} cr={cr} date={refDate} />
+        </>
+      )}
+
       {cr.inclurePlanning !== false && retards.length > 0 && (
         <>
           <h2>Planning — points de vigilance</h2>
           <table>
-            <thead><tr><th>Lot</th><th>Prévu</th><th>Réel</th><th>Écart</th></tr></thead>
+            <thead><tr><th>Tâche</th><th>Prévu</th><th>Réel</th><th>Écart</th></tr></thead>
             <tbody>
               {retards.map(({ sb, a }) => (
                 <tr key={sb.id}>
@@ -193,6 +268,31 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
               ))}
             </tbody>
           </table>
+        </>
+      )}
+
+      {cr.interventionsPrevues?.trim() && (
+        <>
+          <h2>Interventions prévues dans les semaines à venir</h2>
+          <p style={{ whiteSpace: 'pre-line' }}>{cr.interventionsPrevues}</p>
+        </>
+      )}
+
+      {(convoques.length > 0 || cr.convocationMessage?.trim() || (reunion && rdv)) && (
+        <>
+          <h2>{reunion ? 'Prochaine réunion — convocation' : 'Prochain rendez-vous — convocation'}</h2>
+          <dl className="r-meta">
+            <dt>Date</dt><dd>{rdv || 'à confirmer'}</dd>
+            {p.info.adresse && (<><dt>Lieu</dt><dd>{p.info.adresse}</dd></>)}
+            {cr.prochaineSujet && (<><dt>Objet</dt><dd>{cr.prochaineSujet}</dd></>)}
+          </dl>
+          {cr.convocationMessage?.trim() && <p style={{ whiteSpace: 'pre-line', margin: '8px 0' }}>{cr.convocationMessage}</p>}
+          {convoques.length > 0 && (
+            <>
+              <h3>Sont convoqués</h3>
+              <ContactsTable list={convoques} />
+            </>
+          )}
         </>
       )}
 

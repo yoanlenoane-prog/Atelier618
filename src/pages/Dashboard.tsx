@@ -39,7 +39,7 @@ export function Dashboard({ p }: { p: Project }) {
     { to: 'cr', label: 'Comptes rendus', icon: IconReport },
     { to: 'entreprises', label: 'Entreprises', icon: IconCompany },
     { to: 'docs', label: 'Documents', icon: IconDocs },
-    { to: 'structure', label: 'Blocs & sous-blocs', icon: IconStructure },
+    { to: 'structure', label: 'Lots & tâches', icon: IconStructure },
     { to: 'infos', label: 'Informations', icon: IconInfo },
     { to: 'recherche', label: 'Recherche', icon: IconSearch },
   ];
@@ -65,7 +65,7 @@ export function Dashboard({ p }: { p: Project }) {
         </div>
         <a className="card kpi" href={href(`/p/${p.id}/gantt`)} style={{ textDecoration: 'none' }}>
           <div className={'v' + (retards.length ? ' late' : '')}>{retards.length}</div>
-          <div className="l eyebrow">Sous-blocs en retard</div>
+          <div className="l eyebrow">Tâches en retard</div>
         </a>
         <a className="card kpi" href={href(`/p/${p.id}/obs?statut=ouvertes`)} style={{ textDecoration: 'none' }}>
           <div className="v">{count('a_faire') + count('en_cours')}</div>
@@ -80,7 +80,7 @@ export function Dashboard({ p }: { p: Project }) {
         <div className="card">
           <h3>Planning — retards</h3>
           {retards.length === 0 ? (
-            <div className="small muted">Aucun sous-bloc en retard. 👌</div>
+            <div className="small muted">Aucune tâche en retard. 👌</div>
           ) : (
             <div className="list">
               {retards.map(({ sb, a }) => (

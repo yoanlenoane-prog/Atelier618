@@ -35,23 +35,23 @@ export function Structure({ p }: { p: Project }) {
     <div className="stack lg">
       <div className="section-title">
         <div>
-          <h2>Blocs & sous-blocs</h2>
-          <div className="muted small">La même structure sert au Gantt, aux observations et aux comptes rendus. Les dates d’un bloc sont déduites de ses sous-blocs.</div>
+          <h2>Lots & tâches</h2>
+          <div className="muted small">La même structure sert au Gantt, aux observations et aux comptes rendus. Les dates d’un lot sont déduites de ses tâches.</div>
         </div>
         <button
           className="btn"
           onClick={() => {
-            const nom = rename('', 'Nom du nouveau bloc (ex. GROS ŒUVRE)');
+            const nom = rename('', 'Nom du nouveau lot (ex. GROS ŒUVRE)');
             if (nom) upd((b) => [...b, { id: uid('b'), nom, sousBlocs: [] }]);
           }}
         >
-          <IconPlus /> Nouveau bloc
+          <IconPlus /> Nouveau lot
         </button>
       </div>
 
       {p.blocs.length === 0 && (
-        <Empty title="Aucun bloc">
-          <p>Créez vos blocs de travaux, ou partez de la structure type.</p>
+        <Empty title="Aucun lot">
+          <p>Créez vos lots de travaux, ou partez de la structure type.</p>
           <button className="btn sand" onClick={() => upd(() => blocsFromModele())}>Utiliser la structure type</button>
         </Empty>
       )}
@@ -72,7 +72,7 @@ export function Structure({ p }: { p: Project }) {
                 <button
                   className="btn ghost sm"
                   onClick={() => {
-                    const nom = rename(bloc.nom, 'Nom du bloc');
+                    const nom = rename(bloc.nom, 'Nom du lot');
                     if (nom) upd((b) => b.map((x) => (x.id === bloc.id ? { ...x, nom } : x)));
                   }}
                 >
@@ -80,9 +80,9 @@ export function Structure({ p }: { p: Project }) {
                 </button>
                 <button
                   className="btn danger sm icon"
-                  aria-label="Supprimer le bloc"
+                  aria-label="Supprimer le lot"
                   onClick={() => {
-                    if (confirmAction(`Supprimer le bloc « ${bloc.nom} » et ses ${bloc.sousBlocs.length} sous-blocs ?\nLes observations liées seront conservées (sans bloc).`))
+                    if (confirmAction(`Supprimer le lot « ${bloc.nom} » et ses ${bloc.sousBlocs.length} tâches ?\nLes observations liées seront conservées (sans lot).`))
                       upd((b) => b.filter((x) => x.id !== bloc.id));
                   }}
                 >
@@ -116,7 +116,7 @@ export function Structure({ p }: { p: Project }) {
                       <button
                         className="btn danger sm icon"
                         aria-label="Supprimer"
-                        onClick={() => confirmAction(`Supprimer le sous-bloc « ${sb.nom} » ?`) && upd((b) => b.map((x) => (x.id === bloc.id ? { ...x, sousBlocs: x.sousBlocs.filter((s) => s.id !== sb.id) } : x)))}
+                        onClick={() => confirmAction(`Supprimer la tâche « ${sb.nom} » ?`) && upd((b) => b.map((x) => (x.id === bloc.id ? { ...x, sousBlocs: x.sousBlocs.filter((s) => s.id !== sb.id) } : x)))}
                       >
                         <IconTrash />
                       </button>
@@ -128,11 +128,11 @@ export function Structure({ p }: { p: Project }) {
                 className="btn ghost sm"
                 style={{ marginTop: 10 }}
                 onClick={() => {
-                  const nom = rename('', `Nouveau sous-bloc dans « ${bloc.nom} »`);
+                  const nom = rename('', `Nouvelle tâche dans « ${bloc.nom} »`);
                   if (nom) upd((b) => b.map((x) => (x.id === bloc.id ? { ...x, sousBlocs: [...x.sousBlocs, { id: uid('s'), nom }] } : x)));
                 }}
               >
-                <IconPlus /> Sous-bloc
+                <IconPlus /> Tâche
               </button>
             </div>
           </div>

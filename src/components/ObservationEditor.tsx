@@ -77,7 +77,7 @@ export function BlocSelect({ p, blocId, sousBlocId, onChange }: { p: Project; bl
       <option value="">— Non classé —</option>
       {p.blocs.map((b, bi) => (
         <optgroup key={b.id} label={`${String(bi + 1).padStart(2, '0')} — ${b.nom}`}>
-          <option value={`b:${b.id}`}>{b.nom} (bloc entier)</option>
+          <option value={`b:${b.id}`}>{b.nom} (lot entier)</option>
           {b.sousBlocs.map((s, si) => (
             <option key={s.id} value={`s:${s.id}`}>
               {String(bi + 1).padStart(2, '0')}.{String(si + 1).padStart(2, '0')} — {s.nom}
@@ -218,7 +218,7 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
         </div>
         <div className="form-grid">
           <label className="f">
-            Bloc / sous-bloc
+            Lot / tâche
             <BlocSelect p={p} blocId={draft.blocId} sousBlocId={draft.sousBlocId} onChange={(b, s) => {
               const sb = p.blocs.flatMap((x) => x.sousBlocs).find((x) => x.id === s);
               change({ ...draft, blocId: b, sousBlocId: s, entreprise: draft.entreprise || sb?.entreprise }, true);
