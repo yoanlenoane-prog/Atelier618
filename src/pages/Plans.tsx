@@ -126,7 +126,11 @@ export function Plans({ p, planId, query }: { p: Project; planId?: string; query
         selectedId={selected}
         focus={focusObs && focusObs.planId === plan.id ? { x: focusObs.x!, y: focusObs.y! } : undefined}
         onPlace={place}
-        onSelect={(id) => setSelected(id)}
+        onSelect={(id) => {
+          // Un clic sur une pastille ouvre directement sa fiche d'édition (téléphone et ordinateur)
+          setSelected(id);
+          setQuickId(id);
+        }}
         onMove={(id, x, y) =>
           store.update(p.id, (d) => {
             d.observations = d.observations.map((o) => (o.id === id ? { ...o, x, y } : o));

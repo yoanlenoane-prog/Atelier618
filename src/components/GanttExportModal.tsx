@@ -62,7 +62,7 @@ export function GanttExportModal({ p, onClose }: { p: Project; onClose: () => vo
       <div className="stack">
         <div className="f" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span className="eyebrow">Contenu</span>
-          <Seg value={detail} onChange={setDetail} options={[['complet', 'Blocs et sous-blocs'], ['blocs', 'Blocs seuls']]} />
+          <Seg value={detail} onChange={setDetail} options={[['complet', 'Lots et tâches'], ['blocs', 'Lots seuls']]} />
         </div>
         <div className="card" style={{ padding: '12px 14px', background: 'var(--paper)' }}>
           <div className="row between wrap">

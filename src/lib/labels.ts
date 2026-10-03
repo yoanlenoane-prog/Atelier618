@@ -1,4 +1,4 @@
-import type { CompteRendu, ObsStatus, Project, ProjectStatus, ReportType } from '../types';
+import type { CompteRendu, Contact, ContactCategorie, ObsStatus, Project, ProjectStatus, ReportType } from '../types';
 
 export const OBS_STATUS: [ObsStatus, string][] = [
   ['a_faire', 'À faire'],
@@ -50,4 +50,19 @@ export function crParticipants(cr: CompteRendu): string[] {
 export function crConcernesLabel(cr: CompteRendu): string {
   if (cr.type === 'reunion') return '';
   return (cr.concernes || []).map((c) => (c === CR_CHANTIER ? 'Ensemble du chantier' : c)).join(', ');
+}
+
+export const CONTACT_CATEGORIE: [ContactCategorie, string][] = [
+  ['agence', 'Agence d’architecture'],
+  ['client', 'Client / maître d’ouvrage'],
+  ['entreprise', 'Entreprise'],
+  ['autre', 'Autre prestataire'],
+];
+export const CONTACT_CATEGORIE_LABEL = Object.fromEntries(CONTACT_CATEGORIE) as Record<ContactCategorie, string>;
+
+/** « Nom (Société) ». */
+export function contactLabel(c: Contact): string {
+  const nom = c.nom.trim();
+  const soc = c.societe.trim();
+  return nom && soc ? `${nom} (${soc})` : nom || soc || 'Sans nom';
 }

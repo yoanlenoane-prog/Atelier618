@@ -231,7 +231,7 @@ export async function ganttPdf(p: Project, auj: ISODate, detail: GanttDetail): P
     doc.setFont('helvetica', 'bold');
     fs(6.5);
     doc.setTextColor(C.muted);
-    doc.text('BLOCS / SOUS-BLOCS', M + u(1), sTop + u(8.5));
+    doc.text('LOTS / TÂCHES', M + u(1), sTop + u(8.5));
 
     // — Ligne « Aujourd'hui » (sous les barres et les étiquettes) —
     const tx = X(dayNum(auj)) + dayW / 2;

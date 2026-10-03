@@ -10,6 +10,7 @@ import { CR_CHANTIER, OBS_STATUS_LABEL, REPORT_TYPE, reunionCandidats } from '..
 import { isOpen } from '../lib/planning';
 import { Empty, Seg, toast, useToday } from '../components/ui';
 import { ReportDocument } from '../components/ReportDocument';
+import { IntemperiesCard, PresentsCard, RendezVousCard } from '../components/ReportExtras';
 import { IconPrint, IconTrash } from '../components/Icons';
 
 export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
@@ -57,12 +58,27 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
     set('concernes', concernes.includes(nom) ? concernes.filter((x) => x !== nom) : [...concernes, nom]);
 
   const allObs = [...p.observations].sort((a, b) => a.numero - b.numero);
-  const rubrique = (id: string, label: string, strong = false) => (
-    <label className="f" key={id}>
-      <span style={strong ? { color: 'var(--ink)', fontSize: 13 } : undefined}>{label}</span>
-      <textarea style={{ minHeight: 56 }} value={cr.rubriques[id] || ''} onChange={(e) => set('rubriques', { ...cr.rubriques, [id]: e.target.value })} />
-    </label>
+  const selection = allObs.filter((o) => cr.observationIds.includes(o.id));
+  const rubrique = (id: string, label: string, obs: typeof allObs, strong = false) => (
+    <div className="stack" style={{ gap: 6 }} key={id}>
+      <label className="f">
+        <span style={strong ? { color: 'var(--ink)', fontSize: 13 } : undefined}>{label}</span>
+        <textarea style={{ minHeight: 56 }} value={cr.rubriques[id] || ''} onChange={(e) => set('rubriques', { ...cr.rubriques, [id]: e.target.value })} />
+      </label>
+      {obs.length > 0 && (
+        <div className="rub-obs">
+          {obs.map((o) => (
+            <a key={o.id} className="rub-obs-item" href={href(`/p/${p.id}/obs/${o.id}`)} title="Ouvrir la pastille">
+              <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+              <span className="grow">{o.titre || 'Sans titre'}</span>
+              <span className="tiny muted nowrap">{OBS_STATUS_LABEL[o.statut]}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
   );
+  const sansTache = selection.filter((o) => !p.blocs.some((b) => b.id === o.blocId));
 
   const attachPdf = async (f: File) => {
     const ref = await storeLocal(f, f.name);
@@ -104,14 +120,6 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
                 Météo
                 <input type="text" value={cr.meteo || ''} placeholder="ex. Ensoleillé, 18 °C" onChange={(e) => set('meteo', e.target.value)} />
               </label>
-              <label className="f">
-                Prochaine visite
-                <input type="date" value={cr.prochaineVisite || ''} onChange={(e) => set('prochaineVisite', e.target.value || undefined)} />
-              </label>
-              <label className="f full">
-                {type === 'reunion' ? 'Autres participants (un par ligne)' : 'Participants (un par ligne)'}
-                <textarea value={cr.participants} onChange={(e) => set('participants', e.target.value)} />
-              </label>
               <label className="f full">
                 Généralités
                 <textarea value={cr.notesGenerales || ''} onChange={(e) => set('notesGenerales', e.target.value)} />
@@ -124,9 +132,18 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
               <h2>Objet du compte rendu</h2>
               <Seg value={type} onChange={setType} options={REPORT_TYPE} />
             </div>
-            <div className="small muted" style={{ margin: '4px 0 8px' }}>
-              {type === 'reunion' ? 'Participants à la réunion :' : 'Entreprises concernées :'}
-            </div>
+            {type === 'reunion' ? (
+              <div className="small muted" style={{ margin: '4px 0 0' }}>
+                Cochez les participants dans « Personnes présentes » ci-dessous.
+                {concernes.length > 0 && (
+                  <> Participants déjà notés (ancien format) : {concernes.join(', ')}.{' '}
+                    <button className="linkbtn" onClick={() => set('concernes', [])}>Effacer</button>
+                  </>
+                )}
+              </div>
+            ) : (
+            <>
+            <div className="small muted" style={{ margin: '4px 0 8px' }}>Entreprises concernées :</div>
             <div className="list">
               {type === 'avancement' && (
                 <label className="item check" style={{ cursor: 'pointer' }}>
@@ -143,15 +160,34 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
             </div>
             {choix.length === 0 && (
               <div className="small muted">
-                Aucune {type === 'reunion' ? 'personne' : 'entreprise'} renseignée — ajoutez-les dans <a href={href(`/p/${p.id}/infos`)}>les informations du projet</a>.
+                Aucune entreprise renseignée — ajoutez-les dans <a href={href(`/p/${p.id}/infos`)}>les informations du projet</a>.
               </div>
             )}
+            </>
+            )}
           </div>
+
+          <PresentsCard p={p} cr={cr} set={set} change={change} />
+
+          <IntemperiesCard cr={cr} set={set} />
+
+          <div className="card">
+            <h2>Interventions prévues dans les semaines à venir</h2>
+            <textarea
+              style={{ minHeight: 90 }}
+              value={cr.interventionsPrevues || ''}
+              placeholder="ex. Semaine 42 : pose des menuiseries extérieures (Menuiserie Le Goff). Semaine 43 : début des cloisons."
+              onChange={(e) => set('interventionsPrevues', e.target.value || undefined)}
+            />
+            <p className="tiny muted" style={{ marginTop: 6 }}>Texte libre, indépendant du Gantt. Laissé vide, ce paragraphe n’apparaît pas.</p>
+          </div>
+
+          <RendezVousCard p={p} cr={cr} set={set} />
 
           <div className="card">
             <div className="row between wrap">
               <h2>Présentation</h2>
-              <Seg value={cr.mode} onChange={(m) => set('mode', m)} options={[['bloc', 'Par bloc / sous-bloc'], ['pastille', 'Par pastille']]} />
+              <Seg value={cr.mode} onChange={(m) => set('mode', m)} options={[['bloc', 'Par lot / tâche'], ['pastille', 'Par pastille']]} />
             </div>
             <label className="check">
               <input type="checkbox" checked={cr.inclurePlans} onChange={(e) => set('inclurePlans', e.target.checked)} />
@@ -165,6 +201,12 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
               <input type="checkbox" checked={cr.afficherAvancement !== false} onChange={(e) => set('afficherAvancement', e.target.checked)} />
               Afficher l’avancement estimé
             </label>
+            {type === 'avancement' && (
+              <label className="check" style={{ marginTop: 8 }}>
+                <input type="checkbox" checked={cr.inclureGanttEntreprises !== false} onChange={(e) => set('inclureGanttEntreprises', e.target.checked)} />
+                Afficher le planning (Gantt) des tâches des entreprises concernées
+              </label>
+            )}
           </div>
 
           <div className="card">
@@ -189,17 +231,37 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
           </div>
 
           <div className="card">
-            <h2>Rubriques par bloc / sous-bloc</h2>
-            <p className="small muted">Écrivez directement sous chaque rubrique. Les rubriques vides n’apparaissent pas dans le compte rendu.</p>
+            <h2>Rubriques par lot / tâche</h2>
+            <p className="small muted">Écrivez directement sous chaque rubrique ; les pastilles sélectionnées s’affichent sous la tâche associée. Les rubriques vides n’apparaissent pas dans le compte rendu.</p>
             <div className="stack">
               {p.blocs.map((b, bi) => (
                 <div key={b.id} className="stack" style={{ gap: 8 }}>
-                  {rubrique(b.id, `${String(bi + 1).padStart(2, '0')} — ${b.nom.toUpperCase()}`, true)}
+                  {rubrique(
+                    b.id,
+                    `${String(bi + 1).padStart(2, '0')} — ${b.nom.toUpperCase()}`,
+                    selection.filter((o) => o.blocId === b.id && (!o.sousBlocId || !b.sousBlocs.some((s) => s.id === o.sousBlocId))),
+                    true
+                  )}
                   <div className="stack" style={{ gap: 8, paddingLeft: 16, borderLeft: '2px solid var(--line)' }}>
-                    {b.sousBlocs.map((s, si) => rubrique(s.id, `${String(bi + 1).padStart(2, '0')}.${String(si + 1).padStart(2, '0')} — ${s.nom}`))}
+                    {b.sousBlocs.map((s, si) =>
+                      rubrique(s.id, `${String(bi + 1).padStart(2, '0')}.${String(si + 1).padStart(2, '0')} — ${s.nom}`, selection.filter((o) => o.sousBlocId === s.id))
+                    )}
                   </div>
                 </div>
               ))}
+              {sansTache.length > 0 && (
+                <div className="stack" style={{ gap: 6 }}>
+                  <span className="eyebrow">Pastilles sans lot / tâche</span>
+                  <div className="rub-obs">
+                    {sansTache.map((o) => (
+                      <a key={o.id} className="rub-obs-item" href={href(`/p/${p.id}/obs/${o.id}`)}>
+                        <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+                        <span className="grow">{o.titre || 'Sans titre'}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,12 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Project, ProjectInfo } from '../types';
 import { useStore } from '../store';
 import { navigate } from '../router';
 import { PROJECT_STATUS } from '../lib/labels';
 import { uid } from '../lib/ids';
 import { folderLink } from '../lib/drive';
-import { confirmAction, toast } from '../components/ui';
+import { toast } from '../components/ui';
+import { FileImage } from '../components/FileImage';
+import { ContactsEditor } from '../components/Contacts';
+import { compressPhoto, storeLocal } from '../lib/files';
 import { IconExternal, IconPlus, IconTrash } from '../components/Icons';
+
+/** Supprime un projet après confirmation (son dossier Drive va dans la corbeille Google). */
+export async function supprimerProjet(store: ReturnType<typeof useStore>, p: Project): Promise<boolean> {
+  const nom = p.info.nom || 'Sans nom';
+  if (!window.confirm(`Supprimer définitivement le projet « ${nom} » ?\n\nIl disparaîtra de l’application sur tous vos appareils. Son dossier Google Drive sera placé dans la corbeille (récupérable pendant 30 jours).`)) return false;
+  await store.remove(p.id);
+  toast(`Projet « ${nom} » supprimé`);
+  return true;
+}
 
 export function InfoFields({ info, onChange, compact }: { info: ProjectInfo; onChange: (i: ProjectInfo) => void; compact?: boolean }) {
   const set = <K extends keyof ProjectInfo>(k: K, v: ProjectInfo[K]) => onChange({ ...info, [k]: v });
@@ -70,6 +82,7 @@ export function ProjectInfoPage({ p }: { p: Project }) {
     toast('Informations enregistrées');
   };
 
+  const imgInput = useRef<HTMLInputElement>(null);
   const ent = info.entreprises;
   const setEnt = (list: ProjectInfo['entreprises']) => setInfo({ ...info, entreprises: list });
 
@@ -96,7 +109,7 @@ export function ProjectInfoPage({ p }: { p: Project }) {
                 <input type="text" value={e.nom} onChange={(ev) => setEnt(ent.map((x, j) => (j === i ? { ...x, nom: ev.target.value } : x)))} />
               </label>
               <label className="f grow" style={{ minWidth: 140 }}>
-                Lot
+                Corps d’état
                 <input type="text" value={e.lot || ''} onChange={(ev) => setEnt(ent.map((x, j) => (j === i ? { ...x, lot: ev.target.value } : x)))} />
               </label>
               <label className="f grow" style={{ minWidth: 140 }}>
@@ -111,8 +124,51 @@ export function ProjectInfoPage({ p }: { p: Project }) {
         </div>
       </div>
 
-      <div className="row wrap between">
-        <button className="btn" disabled={!dirty} onClick={save}>Enregistrer</button>
+      <div className="card">
+        <h2>Personnes &amp; contacts</h2>
+        <p className="small muted" style={{ marginTop: -4 }}>
+          Annuaire du projet : ces personnes peuvent être cochées comme présentes et convoquées dans les comptes rendus.
+        </p>
+        <ContactsEditor p={p} contacts={info.contacts || []} onChange={(contacts) => setInfo({ ...info, contacts })} />
+      </div>
+
+      <div className="card">
+        <h2>Image du projet</h2>
+        <p className="small muted" style={{ marginTop: -4 }}>Perspective ou photo, affichée en haut à droite des comptes rendus.</p>
+        <div className="row wrap" style={{ alignItems: 'flex-start' }}>
+          {info.image && (
+            <div className="proj-image">
+              <FileImage file={info.image} alt="Image du projet" />
+            </div>
+          )}
+          <div className="row wrap">
+            <button className="btn ghost sm" onClick={() => imgInput.current?.click()}>
+              <IconPlus /> {info.image ? 'Changer l’image' : 'Choisir une image'}
+            </button>
+            {info.image && (
+              <button className="btn danger sm" onClick={() => setInfo({ ...info, image: undefined })}>
+                <IconTrash /> Retirer
+              </button>
+            )}
+            <input
+              ref={imgInput}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                e.target.value = '';
+                if (!f) return;
+                const ref = await storeLocal(await compressPhoto(f), `Image du projet.jpg`);
+                setInfo({ ...info, image: ref });
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="row wrap between save-bar">
+        <button className="btn" disabled={!dirty} onClick={save}>{dirty ? 'Enregistrer les modifications' : 'Enregistré'}</button>
         <div className="row wrap">
           {p.drive && (
             <a className="btn ghost" href={folderLink(p.drive.racine || p.drive.projet)} target="_blank" rel="noreferrer">
@@ -122,10 +178,7 @@ export function ProjectInfoPage({ p }: { p: Project }) {
           <button
             className="btn danger"
             onClick={async () => {
-              if (!confirmAction(`Supprimer le projet « ${p.info.nom} » ?\n\nSon dossier Google Drive sera placé dans la corbeille (récupérable 30 jours).`)) return;
-              await store.remove(p.id);
-              toast('Projet supprimé');
-              navigate('/');
+              if (await supprimerProjet(store, p)) navigate('/');
             }}
           >
             <IconTrash /> Supprimer le projet

@@ -33,7 +33,7 @@ const PROJECT_NAV: { key: string; label: string; short: string; icon: (p: any) =
   { key: 'cr', label: 'Comptes rendus', short: 'CR', icon: IconReport, mobile: true },
   { key: 'entreprises', label: 'Entreprises', short: 'Entreprises', icon: IconCompany },
   { key: 'docs', label: 'Documents', short: 'Docs', icon: IconDocs },
-  { key: 'structure', label: 'Blocs & sous-blocs', short: 'Structure', icon: IconStructure },
+  { key: 'structure', label: 'Lots & tâches', short: 'Lots', icon: IconStructure },
   { key: 'infos', label: 'Informations', short: 'Infos', icon: IconInfo },
   { key: 'recherche', label: 'Recherche', short: 'Recherche', icon: IconSearch },
 ];
@@ -131,7 +131,6 @@ export function App() {
             <a href={href('/aide')} className={section === 'aide' ? 'on' : ''}><IconHelp /> Notice</a>
             <a href={href('/reglages')} className={section === 'reglages' ? 'on' : ''}><IconSettings /> Réglages</a>
           </nav>
-          <SyncPill />
         </div>
       </aside>
 
@@ -142,6 +141,7 @@ export function App() {
               <a className="btn ghost sm icon back" href={href(back)} aria-label="Retour"><IconBack /></a>
             )}
             <h1 className="grow" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h1>
+            <SyncPill compact />
             {project && (
               <a className="btn ghost sm icon" href={href(`/p/${project.id}/recherche`)} aria-label="Rechercher"><IconSearch /></a>
             )}

@@ -45,6 +45,18 @@ export interface SousBloc {
   finReelle?: ISODate;
   /** Avancement saisi (0–100). Ignoré (=100) si une fin réelle est saisie. */
   avancement?: number;
+  /**
+   * Dépendances « fin → début » : la tâche démarre après la fin prévue de ces tâches
+   * (+ décalage en jours). Le début et la fin prévus sont alors recalculés automatiquement.
+   */
+  dependances?: Dependance[];
+}
+
+export interface Dependance {
+  /** Tâche (sous-bloc) qui doit être terminée. */
+  id: string;
+  /** Jours d'attente après sa fin (0 = le lendemain). */
+  decalage?: number;
 }
 
 export interface Bloc {
@@ -127,7 +139,23 @@ export interface CompteRendu {
   inclurePlans: boolean;
   /** Afficher le tableau « Planning — points de vigilance » (oui par défaut). */
   inclurePlanning?: boolean;
+  /** Prochaine visite / prochaine réunion. */
   prochaineVisite?: ISODate;
+  prochaineHeure?: string;
+  /** Sujet de la prochaine réunion. */
+  prochaineSujet?: string;
+  /** Personnes présentes (ids de contacts). */
+  presents?: string[];
+  /** Personnes convoquées au prochain rendez-vous (ids de contacts) et message joint. */
+  convoques?: string[];
+  convocationMessage?: string;
+  intemperies?: Intemperie[];
+  /** Afficher les intempéries dans le compte rendu (oui par défaut s'il y en a). */
+  inclureIntemperies?: boolean;
+  /** Interventions prévues dans les semaines à venir (texte libre). */
+  interventionsPrevues?: string;
+  /** Avancement : afficher les lignes du Gantt des entreprises concernées (oui par défaut). */
+  inclureGanttEntreprises?: boolean;
   updatedAt: number;
 }
 
@@ -155,6 +183,27 @@ export interface Dossier {
   driveId?: string;
   driveNom?: string;
   updatedAt: number;
+}
+
+export type ContactCategorie = 'agence' | 'client' | 'entreprise' | 'autre';
+
+/** Personne pouvant assister aux réunions / être convoquée. */
+export interface Contact {
+  id: string;
+  categorie: ContactCategorie;
+  /** Agence, entreprise, prestataire… */
+  societe: string;
+  nom: string;
+  email?: string;
+  tel?: string;
+}
+
+export interface Intemperie {
+  id: string;
+  date: ISODate;
+  nature: string;
+  /** Jours d'arrêt de chantier. */
+  jours?: number;
 }
 
 export interface Intervenant {
@@ -193,6 +242,10 @@ export interface ProjectInfo {
   description: string;
   statut: ProjectStatus;
   entreprises: Intervenant[];
+  /** Annuaire des personnes (présentes aux réunions, convoquées…). */
+  contacts?: Contact[];
+  /** Image du projet (perspective, photo), affichée en haut des comptes rendus. */
+  image?: FileRef;
 }
 
 export interface Project {

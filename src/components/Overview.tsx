@@ -77,11 +77,11 @@ export function Overview({ projects }: { projects: Project[] }) {
         </a>
         <div className="card kpi"><div className="v">{ouvertes}</div><div className="l eyebrow">Observations ouvertes</div></div>
         <div className="card kpi"><div className={'v' + (echues.length ? ' late' : '')}>{echues.length}</div><div className="l eyebrow">Échéances dépassées</div></div>
-        <div className="card kpi"><div className={'v' + (retards.length ? ' late' : '')}>{retards.length}</div><div className="l eyebrow">Lots en retard</div></div>
+        <div className="card kpi"><div className={'v' + (retards.length ? ' late' : '')}>{retards.length}</div><div className="l eyebrow">Tâches en retard</div></div>
       </div>
       <div className="grid c3">
         <Liste titre="Échéances dépassées" vide="Aucune échéance dépassée. 👌" lignes={echues} badgeClass="late" />
-        <Liste titre="Lots en retard" vide="Aucun lot en retard." lignes={retards} badgeClass="late" />
+        <Liste titre="Tâches en retard" vide="Aucune tâche en retard." lignes={retards} badgeClass="late" />
         <Liste titre={`Dans les ${HORIZON} prochains jours`} vide="Rien de prévu." lignes={aVenir} auj={auj} />
       </div>
     </div>
