@@ -8,6 +8,7 @@ import { storeLocal } from '../lib/files';
 import { DOSSIER_CR } from '../lib/dossiers';
 import { CR_CHANTIER, OBS_STATUS_LABEL, REPORT_TYPE, reunionCandidats } from '../lib/labels';
 import { isOpen } from '../lib/planning';
+import { cleEntreprise, entreprisesProposees } from '../lib/entreprises';
 import { Empty, Seg, toast, useToday } from '../components/ui';
 import { ReportDocument } from '../components/ReportDocument';
 import { IntemperiesCard, PresentsCard, RendezVousCard } from '../components/ReportExtras';
@@ -19,6 +20,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
   const stored = p.comptesRendus.find((c) => c.id === reportId);
   const [cr, setCr] = useState<CompteRendu | undefined>(stored);
   const [tab, setTab] = useState<'rediger' | 'apercu'>('rediger');
+  const [nouvelle, setNouvelle] = useState('');
   const pending = useRef<CompteRendu | undefined>(undefined);
   const timer = useRef<number | undefined>(undefined);
   const pdfInput = useRef<HTMLInputElement>(null);
@@ -49,9 +51,18 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
 
   const type = cr.type || 'avancement';
   const concernes = cr.concernes || [];
-  const choix = type === 'reunion'
-    ? reunionCandidats(p)
-    : p.info.entreprises.filter((e) => e.nom).map((e) => ({ nom: e.nom, detail: e.lot }));
+  const choix = type === 'reunion' ? reunionCandidats(p) : entreprisesProposees(p, concernes);
+  /** Nouvelle entreprise saisie dans le CR : ajoutée aux entreprises du projet et cochée. */
+  const ajouterEntreprise = async () => {
+    const nom = nouvelle.trim().replace(/\s+/g, ' ');
+    if (!nom) return;
+    const existante = p.info.entreprises.find((e) => cleEntreprise(e.nom) === cleEntreprise(nom));
+    if (!existante) await store.update(p.id, (d) => { d.info.entreprises = [...d.info.entreprises, { id: uid('e'), nom }]; });
+    const n = existante?.nom ?? nom;
+    if (!concernes.includes(n)) set('concernes', [...concernes.filter((c) => c !== CR_CHANTIER || type !== 'avancement'), n]);
+    setNouvelle('');
+    toast(existante ? `« ${n} » cochée` : `« ${n} » ajoutée aux entreprises du projet`);
+  };
   // Changer d'objet réinitialise la sélection (entreprises ≠ participants)
   const setType = (t: ReportType) => t !== type && change({ ...cr, type: t, concernes: t === 'avancement' ? [CR_CHANTIER] : [] });
   const toggleConcerne = (nom: string) =>
@@ -158,11 +169,26 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
                 </label>
               ))}
             </div>
-            {choix.length === 0 && (
-              <div className="small muted">
-                Aucune entreprise renseignée — ajoutez-les dans <a href={href(`/p/${p.id}/infos`)}>les informations du projet</a>.
-              </div>
-            )}
+            {choix.length === 0 && <div className="small muted">Aucune entreprise dans le projet pour l’instant.</div>}
+            <div className="row wrap" style={{ marginTop: 10 }}>
+              <input
+                type="text"
+                list="cr-entreprises"
+                className="grow"
+                style={{ minWidth: 200 }}
+                placeholder="Autre entreprise : saisir son nom…"
+                value={nouvelle}
+                onChange={(e) => setNouvelle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && ajouterEntreprise()}
+              />
+              <datalist id="cr-entreprises">
+                {p.info.entreprises.map((e) => <option key={e.id} value={e.nom} />)}
+              </datalist>
+              <button className="btn ghost" disabled={!nouvelle.trim()} onClick={ajouterEntreprise}>+ Ajouter</button>
+            </div>
+            <div className="tiny muted" style={{ marginTop: 4 }}>
+              Une nouvelle entreprise est ajoutée aux <a href={href(`/p/${p.id}/infos`)}>entreprises du projet</a> et cochée.
+            </div>
             </>
             )}
           </div>

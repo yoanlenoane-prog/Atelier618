@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useStore } from '../store';
 import { href } from '../router';
 import { ReportDocument } from '../components/ReportDocument';
-import { useToday } from '../components/ui';
+import { imprimerQuandPret, useToday } from '../components/ui';
 import { IconBack, IconPrint } from '../components/Icons';
 
 /** Page d'impression : « Imprimer » → « Enregistrer au format PDF ». */
@@ -26,7 +26,7 @@ export function ReportPrint({ projectId, reportId }: { projectId: string; report
         <a className="btn ghost" href={href(`/p/${p.id}/cr/${cr.id}`)}><IconBack /> Retour</a>
         <div className="row">
           <span className="small muted">Choisissez « Enregistrer au format PDF » comme imprimante.</span>
-          <button className="btn" onClick={() => window.print()}><IconPrint /> Imprimer / PDF</button>
+          <button className="btn" onClick={() => imprimerQuandPret()}><IconPrint /> Imprimer / PDF</button>
         </div>
       </div>
       <ReportDocument p={p} cr={cr} auj={auj} />
