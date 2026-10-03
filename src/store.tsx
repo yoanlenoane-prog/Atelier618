@@ -78,6 +78,18 @@ function stamp(prev: Project, next: Project): boolean {
   return changed;
 }
 
+/**
+ * Les entreprises saisies sur les tâches du Gantt rejoignent les entreprises du projet
+ * (y compris celles saisies avant cette fonction). Renvoie vrai si le projet a changé.
+ */
+function completerEntreprises(p: Project): boolean {
+  if (!ajouterEntreprisesDesTaches(p, () => uid('e')).length) return false;
+  const now = Date.now();
+  p.infoUpdatedAt = now;
+  p.updatedAt = now;
+  return true;
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Record<string, Project>>({});
   const [loaded, setLoaded] = useState(false);
@@ -138,6 +150,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       syncing.current = true;
       setSync((s) => ({ ...s, status: 'syncing', message: 'Synchronisation…' }));
+      let etape = '';
       const host: SyncHost = {
         get: (id) => ref.current[id],
         patch: async (id, fn) => {
@@ -151,6 +164,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         absorb: async (remote) => {
           const local = ref.current[remote.id];
           const merged = local ? mergeProjects(local, remote) : remote;
+          completerEntreprises(merged);
           await commit(merged);
           return merged;
         },
@@ -161,14 +175,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           delete d[id];
           await idbSet('meta', DELETED_KEY, d);
         },
-        onProgress: (message) => setSync((s) => ({ ...s, message })),
+        onProgress: (message) => {
+          etape = message;
+          setSync((s) => ({ ...s, message }));
+        },
       };
       try {
         await syncAll(host, Object.keys(ref.current));
         setSync((s) => ({ ...s, status: 'idle', message: undefined, lastSync: Date.now() }));
       } catch (e) {
-        const msg = (e as Error).message;
-        const auth = /401|Non connecté|invalid/i.test(msg) && !currentToken();
+        const brut = (e as Error).message || String(e);
+        console.error('Synchronisation Drive :', etape, e);
+        const msg = etape && !/Connexion/.test(etape) ? `${etape.replace(/…$/, '')} : ${brut}` : brut;
+        const auth = /401|Non connecté|invalid/i.test(brut) && !currentToken();
         setSync((s) => ({ ...s, status: auth ? 'reconnect' : 'error', message: msg }));
       } finally {
         syncing.current = false;
@@ -195,6 +214,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       const all = await idbAll<Project>('projects');
+      for (const p of all) if (completerEntreprises(p)) await idbSet('projects', p.id, p);
       ref.current = Object.fromEntries(all.map((p) => [p.id, p]));
       setProjects(ref.current);
       setLoaded(true);
@@ -229,11 +249,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const next = structuredClone(prev);
         fn(next);
         // Planning : les tâches liées suivent automatiquement la fin des tâches dont elles dépendent
-        if (JSON.stringify(prev.blocs) !== JSON.stringify(next.blocs)) {
-          appliquerDependances(next.blocs);
-          // Une entreprise saisie sur une tâche du Gantt rejoint automatiquement les entreprises du projet
-          ajouterEntreprisesDesTaches(next, () => uid('e'));
-        }
+        if (JSON.stringify(prev.blocs) !== JSON.stringify(next.blocs)) appliquerDependances(next.blocs);
+        // Une entreprise saisie sur une tâche du Gantt rejoint automatiquement les entreprises du projet
+        ajouterEntreprisesDesTaches(next, () => uid('e'));
         if (!stamp(prev, next)) return prev;
         await commit(next);
         setSync((s) => ({ ...s, pending: Math.max(s.pending, 1) }));

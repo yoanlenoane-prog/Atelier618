@@ -20,7 +20,12 @@ export function SyncPill({ compact }: { compact?: boolean }) {
     <button
       className={'syncpill ' + sync.status + (compact ? ' compact' : '')}
       title={sync.message || label}
-      onClick={() => (sync.status === 'local' ? navigate('/reglages') : syncNow(true))}
+      onClick={() => {
+        if (sync.status === 'local') return navigate('/reglages');
+        // En cas d'erreur, on montre le détail (à transmettre en cas de problème) avant de réessayer
+        if (sync.status === 'error' && !window.confirm(`Erreur de synchronisation avec Google Drive :\n\n${sync.message || 'erreur inconnue'}\n\nRéessayer maintenant ?`)) return;
+        syncNow(true);
+      }}
     >
       <i />
       <IconSync className="syncpill-ico" />
