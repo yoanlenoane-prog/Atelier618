@@ -9,7 +9,7 @@ import { TASK_STATE_LABEL, codeSousBloc, formatEcart } from '../lib/planning';
 import { entreprisesDuProjet, type FicheEntreprise } from '../lib/entreprises';
 import { ObsBlock } from '../components/ReportDocument';
 import { Logo } from '../components/Logo';
-import { Empty, Progress, useToday } from '../components/ui';
+import { Empty, Progress, imprimerQuandPret, useToday } from '../components/ui';
 import { IconBack, IconPrint } from '../components/Icons';
 
 const lienFiche = (p: Project, f: FicheEntreprise) => `/p/${p.id}/entreprises/${encodeURIComponent(f.cle)}`;
@@ -181,7 +181,7 @@ export function EntreprisePrint({ projectId, cle }: { projectId: string; cle: st
         <a className="btn ghost" href={href(lienFiche(p, f))}><IconBack /> Retour</a>
         <div className="row">
           <span className="small muted">Choisissez « Enregistrer au format PDF » comme imprimante.</span>
-          <button className="btn" onClick={() => window.print()}><IconPrint /> Imprimer / PDF</button>
+          <button className="btn" onClick={() => imprimerQuandPret()}><IconPrint /> Imprimer / PDF</button>
         </div>
       </div>
       <FicheDocument p={p} f={f} auj={auj} />

@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Collection, Project } from './types';
 import { appliquerDependances } from './lib/planning';
+import { ajouterEntreprisesDesTaches } from './lib/entreprises';
+import { uid } from './lib/ids';
 import { idbAll, idbDel, idbGet, idbSet } from './lib/idb';
 import { mergeProjects } from './lib/merge';
 import { isDirty, syncAll, type SyncHost } from './lib/sync';
@@ -227,7 +229,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const next = structuredClone(prev);
         fn(next);
         // Planning : les tâches liées suivent automatiquement la fin des tâches dont elles dépendent
-        if (JSON.stringify(prev.blocs) !== JSON.stringify(next.blocs)) appliquerDependances(next.blocs);
+        if (JSON.stringify(prev.blocs) !== JSON.stringify(next.blocs)) {
+          appliquerDependances(next.blocs);
+          // Une entreprise saisie sur une tâche du Gantt rejoint automatiquement les entreprises du projet
+          ajouterEntreprisesDesTaches(next, () => uid('e'));
+        }
         if (!stamp(prev, next)) return prev;
         await commit(next);
         setSync((s) => ({ ...s, pending: Math.max(s.pending, 1) }));

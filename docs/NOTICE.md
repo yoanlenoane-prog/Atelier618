@@ -69,7 +69,7 @@ Menu **Lots & tâches**.
 - Un **lot** est une grande catégorie de travaux (ex. 01 — GROS ŒUVRE).
 - Une **tâche** est une étape de ce lot (ex. 01.03 — Murs).
 - Boutons **Nouveau lot**, **+ Tâche**, flèches pour réordonner, corbeille pour supprimer.
-- Cliquez sur une tâche pour saisir ses dates et son entreprise.
+- Cliquez sur une tâche pour saisir ses dates et son entreprise. Une entreprise saisie ici est **ajoutée automatiquement** aux entreprises du projet (Informations).
 
 Pour chaque tâche, renseignez :
 
@@ -193,7 +193,7 @@ Le soir, sur l’ordinateur, la pastille, ses photos et son texte sont déjà l�
 Menu **Comptes rendus → Nouveau compte rendu**.
 
 1. Le numéro et la date sont pré-remplis ; les personnes convoquées au compte rendu précédent sont cochées comme présentes.
-2. Choisissez l’**objet** : avancement de chantier, réunion ou observation (avec les entreprises concernées).
+2. Choisissez l’**objet** : avancement de chantier, réunion ou observation, et cochez les entreprises concernées parmi celles du projet — ou saisissez-en une nouvelle dans **Autre entreprise** : elle est ajoutée aux entreprises du projet et cochée.
 3. **Personnes présentes** : cochez les personnes de l’annuaire du projet (agence, client, entreprises et la personne qui suit le chantier, autres prestataires — avec téléphone et e-mail). **Ajouter une personne** l’enregistre dans l’annuaire pour les prochains comptes rendus (l’annuaire se gère aussi dans **Informations**).
 4. **Intempéries** : date, nature et jours d’arrêt ; la case **Inclure dans le compte rendu** décide si elles apparaissent.
 5. **Interventions prévues dans les semaines à venir** : texte libre, indépendant du Gantt.
@@ -205,7 +205,7 @@ Menu **Comptes rendus → Nouveau compte rendu**.
 6. Cochez ou décochez **Inclure le paragraphe « Planning — points de vigilance »** selon que vous voulez faire apparaître les retards du planning dans le compte rendu.
 7. Pour un compte rendu d’**avancement**, la case **Afficher le planning (Gantt) des tâches des entreprises concernées** ajoute un extrait du Gantt (prévu / réel) limité à ces entreprises (toutes si « Chantier » est coché).
 
-L’**image du projet** (perspective, photo — à choisir dans **Informations**) s’affiche en haut à droite du compte rendu, à côté des informations du projet.
+L’**image du projet** (perspective, photo — à choisir dans **Informations**, enregistrée dès qu’elle est choisie) s’affiche en haut à droite du compte rendu, à côté des informations du projet.
 8. Onglet **Aperçu** pour relire.
 
 ### Exporter en PDF

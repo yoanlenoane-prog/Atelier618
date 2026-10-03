@@ -57,3 +57,41 @@ export function entreprisesDuProjet(p: Project, auj: ISODate): FicheEntreprise[]
   }
   return [...fiches.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 }
+
+/**
+ * Ajoute aux entreprises du projet (Informations) celles saisies sur les tâches du Gantt
+ * et pas encore connues. Modifie `p` sur place ; renvoie les noms ajoutés.
+ */
+export function ajouterEntreprisesDesTaches(p: Project, newId: () => string): string[] {
+  const connues = new Set(p.info.entreprises.map((e) => cleEntreprise(e.nom)));
+  const ajouts: string[] = [];
+  for (const b of p.blocs)
+    for (const t of b.sousBlocs) {
+      const nom = t.entreprise?.trim().replace(/\s+/g, ' ');
+      const cle = cleEntreprise(nom);
+      if (!nom || connues.has(cle)) continue;
+      connues.add(cle);
+      p.info.entreprises = [...p.info.entreprises, { id: newId(), nom }];
+      ajouts.push(nom);
+    }
+  return ajouts;
+}
+
+/**
+ * Entreprises proposées dans un compte rendu : celles du projet, celles des tâches du Gantt
+ * pas encore enregistrées, et celles déjà cochées (pour pouvoir les décocher).
+ */
+export function entreprisesProposees(p: Project, cochees: string[] = []): { nom: string; detail?: string }[] {
+  const out: { nom: string; detail?: string }[] = [];
+  const vus = new Set<string>();
+  const add = (nom: string | undefined, detail?: string) => {
+    const k = cleEntreprise(nom);
+    if (!k || k === cleEntreprise('Chantier') || vus.has(k)) return;
+    vus.add(k);
+    out.push({ nom: nom!.trim(), detail });
+  };
+  for (const e of p.info.entreprises) add(e.nom, e.lot);
+  for (const b of p.blocs) for (const t of b.sousBlocs) add(t.entreprise, 'planning');
+  for (const c of cochees) add(c);
+  return out;
+}

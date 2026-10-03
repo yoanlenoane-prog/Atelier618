@@ -98,3 +98,19 @@ export function useToday(): string {
 export function confirmAction(msg: string): boolean {
   return window.confirm(msg);
 }
+
+/**
+ * Lance l'impression une fois toutes les images du document chargées (photos, plans, image du projet
+ * téléchargée depuis Drive…), pour qu'aucune ne manque dans le PDF.
+ */
+export async function imprimerQuandPret(root: ParentNode = document, timeoutMs = 15000): Promise<void> {
+  const debut = Date.now();
+  const enAttente = () =>
+    Array.from(root.querySelectorAll('.report img')).some((i) => !(i as HTMLImageElement).complete) ||
+    Array.from(root.querySelectorAll('.report .ph-missing')).some((e) => e.textContent?.includes('Chargement'));
+  if (enAttente()) toast('Chargement des images…');
+  while (enAttente() && Date.now() - debut < timeoutMs) await new Promise((r) => setTimeout(r, 200));
+  const manquantes = root.querySelectorAll('.report .ph-missing').length;
+  if (manquantes && !window.confirm(`${manquantes} image(s) ne sont pas disponibles sur cet appareil (pas encore synchronisées depuis Google Drive). Imprimer quand même ?`)) return;
+  window.print();
+}

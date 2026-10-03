@@ -55,3 +55,20 @@ describe('dossiers', () => {
     expect(mergeProjects(ancien, p).dossiers?.map((d) => d.id)).toEqual(['a', 'b']);
   });
 });
+
+describe('entreprises saisies dans le Gantt', () => {
+  it('sont ajoutées une seule fois aux entreprises du projet, sans tenir compte de la casse', async () => {
+    const { ajouterEntreprisesDesTaches, entreprisesProposees } = await import('../entreprises');
+    const p = newProject({ ...emptyInfo(1), nom: 'X', entreprises: [{ id: 'e1', nom: 'Bâti Ouest' }] });
+    p.blocs = [{ id: 'b', nom: 'GO', sousBlocs: [
+      { id: 's1', nom: 'Murs', entreprise: 'bâti ouest' },
+      { id: 's2', nom: 'Toiture', entreprise: '  Charpente  Le Bihan ' },
+      { id: 's3', nom: 'Zinguerie', entreprise: 'charpente le bihan' },
+    ] }];
+    let n = 0;
+    expect(ajouterEntreprisesDesTaches(p, () => 'n' + ++n)).toEqual(['Charpente Le Bihan']);
+    expect(p.info.entreprises.map((e) => e.nom)).toEqual(['Bâti Ouest', 'Charpente Le Bihan']);
+    expect(ajouterEntreprisesDesTaches(p, () => 'x')).toEqual([]);
+    expect(entreprisesProposees(p, ['Ancienne SARL']).map((e) => e.nom)).toEqual(['Bâti Ouest', 'Charpente Le Bihan', 'Ancienne SARL']);
+  });
+});

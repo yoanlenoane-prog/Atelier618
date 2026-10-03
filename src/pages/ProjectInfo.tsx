@@ -72,7 +72,19 @@ export function InfoFields({ info, onChange, compact }: { info: ProjectInfo; onC
 export function ProjectInfoPage({ p }: { p: Project }) {
   const store = useStore();
   const [info, setInfo] = useState(p.info);
-  useEffect(() => setInfo(p.info), [p.info]);
+  // Une modification arrivée d'ailleurs (synchronisation Drive…) ne doit pas effacer une saisie en cours :
+  // on ne reprend la version enregistrée que si le formulaire n'a pas été modifié.
+  const base = useRef(p.info);
+  useEffect(() => {
+    setInfo((cur) => (JSON.stringify(cur) === JSON.stringify(base.current) ? p.info : cur));
+    base.current = p.info;
+  }, [p.info]);
+  // L'image du projet est enregistrée immédiatement (sans attendre « Enregistrer »)
+  const setImage = async (image: ProjectInfo['image']) => {
+    setInfo((cur) => ({ ...cur, image }));
+    await store.update(p.id, (d) => { d.info.image = image; });
+    toast(image ? 'Image du projet enregistrée' : 'Image du projet retirée');
+  };
   const dirty = JSON.stringify(info) !== JSON.stringify(p.info);
 
   const save = async () => {
@@ -146,7 +158,7 @@ export function ProjectInfoPage({ p }: { p: Project }) {
               <IconPlus /> {info.image ? 'Changer l’image' : 'Choisir une image'}
             </button>
             {info.image && (
-              <button className="btn danger sm" onClick={() => setInfo({ ...info, image: undefined })}>
+              <button className="btn danger sm" onClick={() => setImage(undefined)}>
                 <IconTrash /> Retirer
               </button>
             )}
@@ -160,7 +172,7 @@ export function ProjectInfoPage({ p }: { p: Project }) {
                 e.target.value = '';
                 if (!f) return;
                 const ref = await storeLocal(await compressPhoto(f), `Image du projet.jpg`);
-                setInfo({ ...info, image: ref });
+                await setImage(ref);
               }}
             />
           </div>
