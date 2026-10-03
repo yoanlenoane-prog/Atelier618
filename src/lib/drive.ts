@@ -25,10 +25,23 @@ export interface DriveFile {
   size?: string;
 }
 
+/** Erreur réseau (ex. Safari : « Load failed », Chrome : « Failed to fetch ») — on peut réessayer. */
+const isNetworkError = (e: unknown) => e instanceof TypeError;
+
 async function call(url: string, init: RequestInit = {}): Promise<Response> {
   const token = currentToken();
   if (!token) throw new DriveError('Non connecté à Google Drive', 401);
-  const res = await fetch(url, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${token}` } });
+  let res: Response | undefined;
+  // Connexion mobile instable : jusqu'à 3 tentatives sur une coupure réseau
+  for (let essai = 1; ; essai++) {
+    try {
+      res = await fetch(url, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${token}` } });
+      break;
+    } catch (e) {
+      if (!isNetworkError(e) || essai >= 3) throw new DriveError(`Connexion à Google Drive interrompue (${(e as Error).message})`, 0);
+      await new Promise((r) => setTimeout(r, essai * 1500));
+    }
+  }
   if (res.status === 401) invalidateToken();
   if (!res.ok) {
     let msg = res.statusText;
@@ -84,18 +97,43 @@ export async function uploadFile(
   blob: Blob,
   meta: { name: string; parents?: string[]; mimeType?: string; appProperties?: Record<string, string> }
 ): Promise<DriveFile> {
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify({ ...meta, mimeType: meta.mimeType || blob.type })], { type: 'application/json' }));
-  form.append('file', blob);
-  const res = await call(`${UPLOAD}/files?uploadType=multipart&fields=${FIELDS}`, { method: 'POST', body: form });
+  // Le contenu est lu en mémoire puis envoyé en « multipart/related » construit à la main :
+  // Safari (iPhone) échoue (« Load failed ») avec un FormData contenant un fichier relu depuis le stockage local.
+  const data = await lireOctets(blob);
+  const mime = meta.mimeType || blob.type || 'application/octet-stream';
+  const boundary = 'atelier618-' + Math.random().toString(36).slice(2);
+  const enc = new TextEncoder();
+  const head = enc.encode(
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ ...meta, mimeType: mime })}\r\n` +
+      `--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`
+  );
+  const tail = enc.encode(`\r\n--${boundary}--`);
+  const body = new Uint8Array(head.length + data.length + tail.length);
+  body.set(head, 0);
+  body.set(data, head.length);
+  body.set(tail, head.length + data.length);
+  const res = await call(`${UPLOAD}/files?uploadType=multipart&fields=${FIELDS}`, {
+    method: 'POST',
+    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body,
+  });
   return res.json();
+}
+
+/** Lit le contenu d'un fichier ; erreur claire s'il n'est plus lisible sur l'appareil. */
+async function lireOctets(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
+  try {
+    return new Uint8Array(await blob.arrayBuffer());
+  } catch (e) {
+    throw new DriveError(`fichier illisible sur cet appareil (${(e as Error).message})`, 0);
+  }
 }
 
 export async function updateFileContent(id: string, blob: Blob): Promise<DriveFile> {
   const res = await call(`${UPLOAD}/files/${id}?uploadType=media&fields=${FIELDS}`, {
     method: 'PATCH',
     headers: { 'Content-Type': blob.type || 'application/octet-stream' },
-    body: blob,
+    body: await lireOctets(blob),
   });
   return res.json();
 }

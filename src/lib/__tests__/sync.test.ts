@@ -18,7 +18,14 @@ function match(f: F, q: string): boolean {
     throw new Error('requête non gérée : ' + c);
   });
 }
+let echecEnvoi: string | null = null;
+class DriveError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
 vi.mock('../drive', () => ({
+  DriveError,
   FOLDER,
   ROOT_NAME: 'ChantierApp',
   listFiles: async (q: string) => [...files.values()].filter((f) => match(f, q)),
@@ -37,6 +44,7 @@ vi.mock('../drive', () => ({
   },
   uploadFile: async (blob: Blob, meta: { name: string; parents?: string[]; mimeType?: string; appProperties?: Record<string, string> }) => {
     if (meta.parents?.some((p) => !p || !files.has(p))) throw new Error('Parent inexistant : ' + meta.parents);
+    if (echecEnvoi && meta.name === echecEnvoi) throw new DriveError('Connexion à Google Drive interrompue (Load failed)', 0);
     const f: F = { id: 'D' + ++n, name: meta.name, mimeType: meta.mimeType || blob.type, parents: meta.parents, appProperties: meta.appProperties, modifiedTime: now(), content: await blob.text() };
     files.set(f.id, f);
     return f;
@@ -94,6 +102,7 @@ function host(projects: Record<string, Project>) {
 }
 
 beforeEach(() => {
+  echecEnvoi = null;
   files.clear();
   idb.clear();
   globalThis.localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} } as unknown as Storage;
@@ -139,5 +148,20 @@ describe('synchronisation complète (faux Drive)', () => {
     idb.clear();
     await syncAll(host(autre), []);
     expect(autre[p.id]?.info.image?.driveId).toBeTruthy();
+  });
+
+  it('continue sans le fichier qui échoue, puis le renvoie à la synchronisation suivante', async () => {
+    const p = await createSample(1);
+    p.info.image = await storeLocal(new Blob(['img'], { type: 'image/jpeg' }), 'Image du projet.jpg');
+    p.documents.push({ id: 'd1', nom: 'devis.pdf', file: await storeLocal(new Blob(['pdf'], { type: 'application/pdf' }), 'devis.pdf'), date: '2026-10-01', updatedAt: 1 });
+    const projects: Record<string, Project> = { [p.id]: p };
+    echecEnvoi = 'Image du projet.jpg';
+    await expect(syncAll(host(projects), [p.id])).rejects.toThrow(/1 fichier\(s\) non envoyé.*Image du projet\.jpg.*Load failed/s);
+    // Le reste est bien parti : document envoyé et projet enregistré dans Drive
+    expect(projects[p.id].documents[projects[p.id].documents.length - 1].file.driveId).toBeTruthy();
+    expect([...files.values()].some((f) => f.name === 'projet.json')).toBe(true);
+    echecEnvoi = null;
+    await syncAll(host(projects), [p.id]);
+    expect(projects[p.id].info.image?.driveId).toBeTruthy();
   });
 });
