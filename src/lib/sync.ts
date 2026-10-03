@@ -12,7 +12,7 @@
  */
 import type { DocumentFile, FileRef, Project } from '../types';
 import * as drive from './drive';
-import { getBlob } from './files';
+import { getBlob, saveBlob } from './files';
 import { idbGet, idbSet } from './idb';
 import { pastilleLabel } from './ids';
 import { DOSSIER_CR, dossierDe, isImage } from './dossiers';
@@ -247,6 +247,9 @@ async function ensureProjectFolders(host: SyncHost, p: Project, root: string): P
   });
 }
 
+/** Fichiers non envoyés pendant la synchronisation en cours (la synchro continue sans eux). */
+let echecs: string[] = [];
+
 async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
   const pending: RefCtx[] = [];
   forEachRef(p, (c) => {
@@ -272,8 +275,16 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
           d.drive!.photosPastilles = { ...(d.drive!.photosPastilles || {}), [key]: parent };
         });
     }
-    const up = await drive.uploadFile(blob, { name: c.ref.name, parents: [parent], mimeType: c.ref.mime });
-    await idbSet('blobs', 'd:' + up.id, blob);
+    let up: drive.DriveFile;
+    try {
+      up = await drive.uploadFile(blob, { name: c.ref.name, parents: [parent], mimeType: c.ref.mime });
+    } catch (e) {
+      // Un fichier en échec ne bloque pas le reste : il sera réessayé à la prochaine synchronisation
+      if (e instanceof drive.DriveError && e.status === 401) throw e;
+      echecs.push(`« ${c.ref.name} » (${p.info.nom}) : ${(e as Error).message}`);
+      continue;
+    }
+    await saveBlob('d:' + up.id, blob);
     await host.patch(p.id, (d) =>
       forEachRef(d, (x) => {
         if (x.ref.localId === c.ref.localId) {
@@ -317,6 +328,15 @@ async function syncOne(host: SyncHost, id: string, root: string, remoteJson?: dr
 
 /** Synchronise tous les projets (envoi des modifications locales, réception des modifications distantes). */
 export async function syncAll(host: SyncHost, localIds: string[]): Promise<void> {
+  echecs = [];
+  await syncAllProjets(host, localIds);
+  if (echecs.length) {
+    const liste = echecs.slice(0, 3).join('\n');
+    throw new Error(`${echecs.length} fichier(s) non envoyé(s), le reste est synchronisé :\n${liste}${echecs.length > 3 ? '\n…' : ''}`);
+  }
+}
+
+async function syncAllProjets(host: SyncHost, localIds: string[]): Promise<void> {
   host.onProgress('Connexion à Google Drive…');
   const root = await rootFolder();
 
