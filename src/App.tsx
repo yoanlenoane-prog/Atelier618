@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useStore } from './store';
 import { href, useRoute } from './router';
 import { ToastHost } from './components/ui';
+import { accent } from './lib/theme';
 import {
   IconBack, IconDash, IconDocs, IconGantt, IconHelp, IconHome, IconObs, IconPlan, IconPlus, IconReport, IconSearch, IconSettings, IconStructure, IconInfo, IconCompany,
 } from './components/Icons';
@@ -99,17 +100,19 @@ export function App() {
   }
 
   const isHome = !section;
+  // Rubrique affichée → couleur d'accent de la fenêtre
+  const rubrique = section === 'p' ? (project ? sub ?? '' : 'home') : section || 'home';
   const wide = sub === 'gantt' || sub === 'plans';
 
   return (
-    <div className="shell">
+    <div className="shell" data-section={rubrique} style={{ '--accent': accent(rubrique) } as CSSProperties}>
       <aside className="sidebar">
         <a className="brand" href={href('/')} aria-label="atelier618 — Mes projets">
           <Logo size="sm" />
         </a>
         <nav className="nav">
-          <a href={href('/')} className={isHome ? 'on' : ''}><IconHome /> Mes projets</a>
-          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''}><IconDash /> Vue d’ensemble</a>
+          <a href={href('/')} className={isHome ? 'on' : ''} style={{ '--c': accent('home') } as CSSProperties}><IconHome /> Mes projets</a>
+          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''} style={{ '--c': accent('ensemble') } as CSSProperties}><IconDash /> Vue d’ensemble</a>
         </nav>
         {project && (
           <>
@@ -119,7 +122,7 @@ export function App() {
             </div>
             <nav className="nav">
               {PROJECT_NAV.map((n) => (
-                <a key={n.key} href={href(`/p/${project.id}${n.key ? '/' + n.key : ''}`)} className={(sub ?? '') === n.key ? 'on' : ''}>
+                <a key={n.key} href={href(`/p/${project.id}${n.key ? '/' + n.key : ''}`)} className={(sub ?? '') === n.key ? 'on' : ''} style={{ '--c': accent(n.key) } as CSSProperties}>
                   <n.icon /> {n.label}
                 </a>
               ))}
@@ -154,7 +157,7 @@ export function App() {
         <>
           <nav className="bottomnav no-print">
             {PROJECT_NAV.filter((n) => n.mobile).map((n) => (
-              <a key={n.key} href={href(`/p/${project.id}${n.key ? '/' + n.key : ''}`)} className={(sub ?? '') === n.key ? 'on' : ''}>
+              <a key={n.key} href={href(`/p/${project.id}${n.key ? '/' + n.key : ''}`)} className={(sub ?? '') === n.key ? 'on' : ''} style={{ '--c': accent(n.key) } as CSSProperties}>
                 <n.icon /> {n.short}
               </a>
             ))}
@@ -168,8 +171,8 @@ export function App() {
       )}
       {(isHome || section === 'ensemble') && (
         <nav className="bottomnav no-print">
-          <a href={href('/')} className={isHome ? 'on' : ''}><IconHome /> Projets</a>
-          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''}><IconDash /> Ensemble</a>
+          <a href={href('/')} className={isHome ? 'on' : ''} style={{ '--c': accent('home') } as CSSProperties}><IconHome /> Projets</a>
+          <a href={href('/ensemble')} className={section === 'ensemble' ? 'on' : ''} style={{ '--c': accent('ensemble') } as CSSProperties}><IconDash /> Ensemble</a>
           <a href={href('/aide')}><IconHelp /> Notice</a>
           <a href={href('/reglages')}><IconSettings /> Réglages</a>
         </nav>

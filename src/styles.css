@@ -490,3 +490,27 @@ input[type='range'] { width: 100%; accent-color: var(--ink); }
 .report .r-img { width: 34%; max-width: 250px; flex: none; }
 .report .r-img img { width: 100%; height: auto; display: block; }
 @media (max-width: 600px) { .report .r-top { flex-direction: column-reverse; } .report .r-img { width: 100%; max-width: none; } }
+
+/* ——— Couleurs par rubrique (voir src/lib/theme.ts) ———
+   Très sobre : un liseré, un repère carré, des icônes teintées et un fond à peine nuancé. */
+.shell { --accent: #1d1d1b; }
+.main { background: color-mix(in srgb, var(--accent) 5%, var(--bg)); transition: background 0.2s; }
+.topbar { box-shadow: inset 0 -2px 0 var(--accent); }
+.topbar h1::before {
+  content: ''; display: inline-block; width: 9px; height: 9px; background: var(--accent);
+  margin-right: 12px; vertical-align: 0.1em;
+}
+.section-title h2::after { content: ''; display: block; width: 34px; height: 2px; background: var(--accent); margin-top: 8px; }
+.kpi { border-top: 2px solid var(--accent); }
+
+.nav a svg { color: var(--c, currentColor); }
+.nav a.on { background: color-mix(in srgb, var(--c, #1d1d1b) 9%, #fff); box-shadow: inset 3px 0 0 var(--c, #1d1d1b); text-decoration-color: var(--c, #1d1d1b); }
+.nav a:hover { background: color-mix(in srgb, var(--c, #1d1d1b) 6%, #fff); }
+
+.shortcut { border-left: 3px solid var(--c, var(--line)); }
+.shortcut svg { color: var(--c); }
+.shortcut:hover { background: color-mix(in srgb, var(--c) 6%, #fff); }
+
+@media (max-width: 899px) {
+  .bottomnav a.on { color: var(--c, var(--ink)); box-shadow: inset 0 2px 0 var(--c, var(--ink)); }
+}

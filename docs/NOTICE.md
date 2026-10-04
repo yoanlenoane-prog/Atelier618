@@ -62,6 +62,10 @@ Les informations (maître d’ouvrage, maître d’œuvre, entreprises, statut�
 
 Sur la page **Mes projets**, la corbeille en bas à droite de la carte du projet (ou **Informations → Supprimer le projet**). Une confirmation est demandée ; le dossier Google Drive du projet est placé dans la corbeille de Drive (récupérable 30 jours).
 
+### Couleurs des rubriques
+
+Chaque rubrique a sa couleur discrète (liseré sous la barre du haut, petit carré devant le titre, fond légèrement nuancé, icône du menu) pour savoir d’un coup d’œil où l’on se trouve : ardoise pour le tableau de bord, bleu acier pour le Gantt, sauge pour les plans, brique douce pour les observations, chêne pour les comptes rendus, lavande grise pour les entreprises, lin pour les documents, taupe pour les lots et tâches.
+
 ## 3. Organiser le chantier : lots et tâches
 
 Menu **Lots & tâches**.
