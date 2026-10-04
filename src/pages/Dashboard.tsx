@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react';
 import type { ContentItem, Project } from '../types';
+import { accent } from '../lib/theme';
 import { href } from '../router';
 import { diffDays, fmt, fmtShort } from '../lib/dates';
 import { pastilleLabel } from '../lib/ids';
@@ -146,7 +148,7 @@ export function Dashboard({ p }: { p: Project }) {
 
       <div className="grid c4">
         {shortcuts.map((s) => (
-          <a key={s.to} className="card row" href={href(`/p/${p.id}/${s.to}`)} style={{ textDecoration: 'none', padding: '14px 16px' }}>
+          <a key={s.to} className="card row shortcut" href={href(`/p/${p.id}/${s.to}`)} style={{ textDecoration: 'none', padding: '14px 16px', '--c': accent(s.to) } as CSSProperties}>
             <s.icon width={20} height={20} />
             <span>{s.label}</span>
           </a>

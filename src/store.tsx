@@ -186,7 +186,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         const brut = (e as Error).message || String(e);
         console.error('Synchronisation Drive :', etape, e);
-        const msg = etape && !/Connexion/.test(etape) ? `${etape.replace(/…$/, '')} : ${brut}` : brut;
+        const msg = etape && !/Connexion/.test(etape) && !/non envoyé/.test(brut) ? `${etape.replace(/…$/, '')} : ${brut}` : brut;
         const auth = /401|Non connecté|invalid/i.test(brut) && !currentToken();
         setSync((s) => ({ ...s, status: auth ? 'reconnect' : 'error', message: msg }));
       } finally {

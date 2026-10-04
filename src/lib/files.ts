@@ -4,10 +4,31 @@ import { uid } from './ids';
 import { downloadBlob } from './drive';
 import { currentToken } from './google';
 
+/**
+ * Les fichiers sont gardés sous forme d'octets (et non d'objet Blob) : sur iPhone, Safari peut
+ * perdre le contenu d'un Blob conservé dans IndexedDB (envoi impossible : « Load failed »).
+ */
+interface StoredBlob {
+  type: string;
+  data: ArrayBuffer;
+}
+
+export async function saveBlob(key: string, blob: Blob): Promise<void> {
+  const v: StoredBlob = { type: blob.type, data: await blob.arrayBuffer() };
+  await idbSet('blobs', key, v);
+}
+
+async function loadBlob(key: string): Promise<Blob | null> {
+  const v = await idbGet<Blob | StoredBlob>('blobs', key);
+  if (!v) return null;
+  if (v instanceof Blob) return v; // fichier enregistré par une version précédente
+  return new Blob([v.data], { type: v.type });
+}
+
 /** Enregistre un fichier localement (IndexedDB) et renvoie sa référence. */
 export async function storeLocal(blob: Blob, name: string): Promise<FileRef> {
   const localId = uid('f');
-  await idbSet('blobs', localId, blob);
+  await saveBlob(localId, blob);
   return { localId, name, mime: blob.type || 'application/octet-stream', size: blob.size };
 }
 
@@ -20,16 +41,16 @@ function cacheKey(ref: FileRef) {
 /** Récupère le contenu d'un fichier : copie locale d'abord, sinon Google Drive (et mise en cache). */
 export async function getBlob(ref: FileRef): Promise<Blob | null> {
   if (ref.localId) {
-    const b = await idbGet<Blob>('blobs', ref.localId);
+    const b = await loadBlob(ref.localId);
     if (b) return b;
   }
   if (ref.driveId) {
-    const cached = await idbGet<Blob>('blobs', 'd:' + ref.driveId);
+    const cached = await loadBlob('d:' + ref.driveId);
     if (cached) return cached;
     if (!currentToken() || !navigator.onLine) return null;
     try {
       const b = await downloadBlob(ref.driveId);
-      await idbSet('blobs', 'd:' + ref.driveId, b);
+      await saveBlob('d:' + ref.driveId, b);
       return b;
     } catch {
       return null;
