@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Annotable, Annotation, ContentItem, FileRef, ObsStatus, Observation, Project } from '../types';
 import { useStore } from '../store';
-import { uid, pastilleLabel } from '../lib/ids';
+import { uid } from '../lib/ids';
 import { today, fmt } from '../lib/dates';
 import { compressPhoto, photoName, storeLocal } from '../lib/files';
 import { OBS_STATUS, OBS_STATUS_LABEL } from '../lib/labels';
@@ -10,6 +10,7 @@ import { FileImage, useFileUrl } from './FileImage';
 import { PhotoAnnotator } from './PhotoAnnotator';
 import { IconCamera, IconClose, IconDown, IconEdit, IconPlus, IconText, IconTrash, IconUp } from './Icons';
 import { toast } from './ui';
+import { nomPastille } from '../lib/planning';
 
 /**
  * Applique le résultat de l'outil d'annotation à une photo : image annotée + formes,
@@ -181,7 +182,7 @@ export function ObservationEditor({ p, obsId, quick }: { p: Project; obsId: stri
       const items: ContentItem[] = [];
       for (const f of files) {
         const blob = await compressPhoto(f);
-        const ref = await storeLocal(blob, photoName(pastilleLabel(draft.numero)));
+        const ref = await storeLocal(blob, photoName(nomPastille(p, draft)));
         items.push({ id: uid('c'), type: 'photo', file: ref });
       }
       change({ ...draft, contenu: [...draft.contenu, ...items] }, true);

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Observation, Plan } from '../types';
-import { pastilleLabel } from '../lib/ids';
 import { useFileUrl } from './FileImage';
+import { pastilleLabel } from '../lib/ids';
 
 interface Props {
   plan: Plan;
@@ -17,12 +17,14 @@ interface Props {
   /** Hauteur fixe (vignette) : pas de défilement ni de zoom. */
   static?: boolean;
   focus?: { x: number; y: number };
+  /** Noms des pastilles (lot + tâche), voir nomsPastilles. */
+  noms?: Map<string, string>;
 }
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
 /** Affiche un plan avec ses pastilles, positionnées en coordonnées relatives (0–1). */
-export function PlanView({ plan, observations, zoom, onZoom, placing, moving, selectedId, onPlace, onMove, onSelect, static: isStatic, focus }: Props) {
+export function PlanView({ plan, observations, zoom, onZoom, placing, moving, selectedId, onPlace, onMove, onSelect, static: isStatic, focus, noms }: Props) {
   const { url, loading } = useFileUrl(plan.image);
   const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
@@ -126,7 +128,7 @@ export function PlanView({ plan, observations, zoom, onZoom, placing, moving, se
                 key={o.id}
                 className={'pastille ' + o.statut + (o.id === selectedId ? ' sel' : '') + (drag?.id === o.id ? ' dragging' : '')}
                 style={{ left: `${pos.x! * 100}%`, top: `${pos.y! * 100}%` }}
-                title={`${pastilleLabel(o.numero)} — ${o.titre}`}
+                title={`${(noms?.get(o.id) ?? pastilleLabel(o.numero))} — ${o.titre}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!drag?.moved) onSelect?.(o.id);
@@ -147,7 +149,7 @@ export function PlanView({ plan, observations, zoom, onZoom, placing, moving, se
                   setTimeout(() => setDrag(null), 0);
                 }}
               >
-                {pastilleLabel(o.numero)}
+                {(noms?.get(o.id) ?? pastilleLabel(o.numero))}
               </div>
             );
           })}

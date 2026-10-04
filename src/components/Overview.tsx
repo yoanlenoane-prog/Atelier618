@@ -3,8 +3,7 @@ import type { Project } from '../types';
 import { href } from '../router';
 import { Empty, useToday } from './ui';
 import { diffDays, fmt, fmtShort, addDays } from '../lib/dates';
-import { pastilleLabel } from '../lib/ids';
-import { analyseSousBloc, codeSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
+import { analyseSousBloc, codeSousBloc, formatEcart, isOpen, sousBlocsEnRetard, nomPastille } from '../lib/planning';
 
 const INACTIFS = ['termine', 'suspendu'];
 const HORIZON = 14;
@@ -35,9 +34,9 @@ export function Overview({ projects }: { projects: Project[] }) {
       ouvertes++;
       const lien = `/p/${p.id}/obs/${o.id}`;
       if (o.echeance && o.echeance < auj)
-        echues.push({ key: o.id, projet: p, date: o.echeance, label: `${pastilleLabel(o.numero)} ${o.actionDemandee || o.titre || 'Sans titre'}`, detail: o.entreprise, badge: `+${diffDays(o.echeance, auj)} j`, link: lien });
+        echues.push({ key: o.id, projet: p, date: o.echeance, label: `${nomPastille(p, o)} ${o.actionDemandee || o.titre || 'Sans titre'}`, detail: o.entreprise, badge: `+${diffDays(o.echeance, auj)} j`, link: lien });
       else if (o.echeance && o.echeance <= limite)
-        aVenir.push({ key: o.id, projet: p, date: o.echeance, label: `Échéance ${pastilleLabel(o.numero)} ${o.titre}`, detail: o.entreprise, link: lien });
+        aVenir.push({ key: o.id, projet: p, date: o.echeance, label: `Échéance ${nomPastille(p, o)} ${o.titre}`, detail: o.entreprise, link: lien });
     }
     for (const { sb, a } of sousBlocsEnRetard(p, auj).filter((x) => x.a.state !== 'termine'))
       retards.push({ key: sb.id, projet: p, label: `${codeSousBloc(p, sb.id)} ${sb.nom}`, detail: sb.entreprise, badge: formatEcart(a.ecartFin ?? a.ecartDebut), link: `/p/${p.id}/gantt` });

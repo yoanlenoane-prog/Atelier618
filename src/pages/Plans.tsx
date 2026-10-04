@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { FileRef, ObsStatus, Project } from '../types';
 import { useStore } from '../store';
 import { href, navigate } from '../router';
-import { uid, pastilleLabel } from '../lib/ids';
+import { uid } from '../lib/ids';
 import { imageSize, storeLocal } from '../lib/files';
 import { OBS_STATUS, OBS_STATUS_LABEL } from '../lib/labels';
-import { codeSousBloc, findSousBloc } from '../lib/planning';
+import { codeSousBloc, findSousBloc, nomPastille, nomsPastilles } from '../lib/planning';
 import { PlanView } from '../components/PlanView';
 import { Empty, Modal, toast } from '../components/ui';
 import { createObservation, ObservationEditor } from '../components/ObservationEditor';
@@ -117,6 +117,7 @@ export function Plans({ p, planId, query }: { p: Project; planId?: string; query
       </div>
 
       <PlanView
+        noms={nomsPastilles(p)}
         plan={plan}
         observations={visible}
         zoom={zoom}
@@ -142,7 +143,7 @@ export function Plans({ p, planId, query }: { p: Project; planId?: string; query
         <div className="card" style={{ marginTop: 12 }}>
           <div className="row between wrap">
             <div className="row">
-              <span className={'pchip ' + sel.statut}>{pastilleLabel(sel.numero)}</span>
+              <span className={'pchip ' + sel.statut}>{nomPastille(p, sel)}</span>
               <div>
                 <strong>{sel.titre || 'Sans titre'}</strong>
                 <div className="tiny muted">
@@ -164,7 +165,7 @@ export function Plans({ p, planId, query }: { p: Project; planId?: string; query
         <Modal
           title={
             <>
-              Pastille <span className="mono">{pastilleLabel(p.observations.find((o) => o.id === quickId)?.numero ?? 0)}</span>
+              Pastille <span className="mono">{(() => { const q = p.observations.find((o) => o.id === quickId); return q ? nomPastille(p, q) : ''; })()}</span>
             </>
           }
           onClose={() => setQuickId(null)}

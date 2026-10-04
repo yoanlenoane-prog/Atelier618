@@ -5,7 +5,7 @@
  *     01 - Maison Dupont/
  *       Projet/projet.json      ← toutes les données de l'application
  *       Plans/                  ← plans importés
- *       Photos/P-012/…          ← photos rangées par pastille
+ *       Photos/0102/…           ← photos rangées par pastille (lot 01, tâche 02)
  *       Photos/Photos/…         ← raccourcis vers les photos ajoutées dans Documents
  *       Documents/<dossiers créés dans l'application>/…
  *       Comptes rendus/
@@ -15,6 +15,7 @@ import * as drive from './drive';
 import { getBlob, saveBlob } from './files';
 import { idbGet, idbSet } from './idb';
 import { pastilleLabel } from './ids';
+import { nomPastille } from './planning';
 import { DOSSIER_CR, dossierDe, isImage } from './dossiers';
 import { contentSignature, mergeProjects } from './merge';
 
@@ -71,6 +72,8 @@ interface RefCtx {
   ref: FileRef;
   kind: 'plan' | 'photo' | 'document' | 'projet';
   numero?: number;
+  /** Nom de la pastille (lot + tâche) : nom du dossier Photos/… sur Drive. */
+  nom?: string;
   doc?: DocumentFile;
 }
 
@@ -83,8 +86,9 @@ function forEachRef(p: Project, cb: (c: RefCtx) => void) {
   for (const o of p.observations)
     for (const c of o.contenu)
       if (c.type === 'photo') {
-        cb({ ref: c.file, kind: 'photo', numero: o.numero });
-        if (c.original) cb({ ref: c.original, kind: 'photo', numero: o.numero });
+        const nom = nomPastille(p, o);
+        cb({ ref: c.file, kind: 'photo', numero: o.numero, nom });
+        if (c.original) cb({ ref: c.original, kind: 'photo', numero: o.numero, nom });
       }
   for (const d of p.documents) {
     cb({ ref: d.file, kind: 'document', doc: d });
@@ -268,7 +272,7 @@ async function uploadPending(host: SyncHost, p: Project): Promise<Project> {
     if (c.kind === 'projet') parent = f.projet;
     if (c.kind === 'document' && c.doc) parent = parentDocument(cur, c.doc) ?? f.documents;
     if (c.kind === 'photo') {
-      const key = pastilleLabel(c.numero ?? 0);
+      const key = c.nom ?? pastilleLabel(c.numero ?? 0);
       parent = f.photosPastilles?.[key] ?? (await drive.ensureFolder(key, f.photos));
       if (!f.photosPastilles?.[key])
         await host.patch(p.id, (d) => {

@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { CompteRendu, Project, ReportType } from '../types';
 import { useStore } from '../store';
 import { href, navigate } from '../router';
-import { pastilleLabel, uid } from '../lib/ids';
+import { uid } from '../lib/ids';
 import { fmt, today } from '../lib/dates';
 import { storeLocal } from '../lib/files';
 import { DOSSIER_CR } from '../lib/dossiers';
 import { CR_CHANTIER, OBS_STATUS_LABEL, REPORT_TYPE, reunionCandidats } from '../lib/labels';
-import { isOpen } from '../lib/planning';
+import { isOpen, nomPastille } from '../lib/planning';
 import { cleEntreprise, entreprisesProposees } from '../lib/entreprises';
 import { Empty, Seg, toast, useToday } from '../components/ui';
 import { ReportDocument } from '../components/ReportDocument';
@@ -80,7 +80,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
         <div className="rub-obs">
           {obs.map((o) => (
             <a key={o.id} className="rub-obs-item" href={href(`/p/${p.id}/obs/${o.id}`)} title="Ouvrir la pastille">
-              <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+              <span className={'pchip ' + o.statut}>{nomPastille(p, o)}</span>
               <span className="grow">{o.titre || 'Sans titre'}</span>
               <span className="tiny muted nowrap">{OBS_STATUS_LABEL[o.statut]}</span>
             </a>
@@ -248,7 +248,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
               {allObs.map((o) => (
                 <label key={o.id} className="item check" style={{ cursor: 'pointer' }}>
                   <input type="checkbox" checked={cr.observationIds.includes(o.id)} onChange={() => toggleObs(o.id)} />
-                  <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+                  <span className={'pchip ' + o.statut}>{nomPastille(p, o)}</span>
                   <span className="grow">{o.titre || 'Sans titre'}</span>
                   <span className="tiny muted nowrap">{OBS_STATUS_LABEL[o.statut]} · {fmt(o.date)}</span>
                 </label>
@@ -281,7 +281,7 @@ export function ReportEdit({ p, reportId }: { p: Project; reportId: string }) {
                   <div className="rub-obs">
                     {sansTache.map((o) => (
                       <a key={o.id} className="rub-obs-item" href={href(`/p/${p.id}/obs/${o.id}`)}>
-                        <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+                        <span className={'pchip ' + o.statut}>{nomPastille(p, o)}</span>
                         <span className="grow">{o.titre || 'Sans titre'}</span>
                       </a>
                     ))}

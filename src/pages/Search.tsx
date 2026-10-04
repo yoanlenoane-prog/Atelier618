@@ -3,9 +3,8 @@ import type { Project } from '../types';
 import { href, navigate } from '../router';
 import { fmt } from '../lib/dates';
 import { DOSSIER_CR, cheminDossier, dossierDe } from '../lib/dossiers';
-import { pastilleLabel } from '../lib/ids';
 import { OBS_STATUS_LABEL } from '../lib/labels';
-import { codeBloc, codeSousBloc } from '../lib/planning';
+import { codeBloc, codeSousBloc, nomPastille } from '../lib/planning';
 
 interface Hit {
   kind: string;
@@ -28,8 +27,8 @@ export function searchProject(p: Project, q: string): Hit[] {
     const texts = o.contenu.map((c) => (c.type === 'texte' ? c.texte : c.legende));
     const bloc = p.blocs.find((b) => b.id === o.blocId);
     const sb = bloc?.sousBlocs.find((s) => s.id === o.sousBlocId);
-    if ((num && Number(num) === o.numero) || has(o.titre, o.entreprise, o.actionDemandee, bloc?.nom, sb?.nom, ...texts, ...o.historique.map((h) => h.texte)) || dateHit(o.date))
-      hits.push({ kind: 'Pastille', title: `${pastilleLabel(o.numero)} — ${o.titre || 'Sans titre'}`, sub: `${OBS_STATUS_LABEL[o.statut]} · ${fmt(o.date)}${sb ? ' · ' + sb.nom : ''}`, link: `/p/${p.id}/obs/${o.id}` });
+    if ((num && Number(num) === o.numero) || norm(nomPastille(p, o)) === t || has(o.titre, o.entreprise, o.actionDemandee, bloc?.nom, sb?.nom, ...texts, ...o.historique.map((h) => h.texte)) || dateHit(o.date))
+      hits.push({ kind: 'Pastille', title: `${nomPastille(p, o)} — ${o.titre || 'Sans titre'}`, sub: `${OBS_STATUS_LABEL[o.statut]} · ${fmt(o.date)}${sb ? ' · ' + sb.nom : ''}`, link: `/p/${p.id}/obs/${o.id}` });
   }
   for (const c of p.comptesRendus) {
     const obsMatch = c.observationIds.some((id) => {
@@ -64,7 +63,7 @@ export function Search({ p, query }: { p: Project; query: URLSearchParams }) {
       <input
         type="search"
         autoFocus
-        placeholder="Pastille (P-021), mot, entreprise, lot, tâche, date (23/09/2026)…"
+        placeholder="Pastille (0102), mot, entreprise, lot, tâche, date (23/09/2026)…"
         value={q}
         style={{ fontSize: 18, padding: '14px 16px' }}
         onChange={(e) => {
