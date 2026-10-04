@@ -3,9 +3,8 @@ import type { Project } from '../types';
 import { useStore } from '../store';
 import { href } from '../router';
 import { diffDays, fmt, fmtLong } from '../lib/dates';
-import { pastilleLabel } from '../lib/ids';
 import { OBS_STATUS_LABEL } from '../lib/labels';
-import { TASK_STATE_LABEL, codeSousBloc, formatEcart } from '../lib/planning';
+import { TASK_STATE_LABEL, codeSousBloc, formatEcart, nomPastille } from '../lib/planning';
 import { entreprisesDuProjet, type FicheEntreprise } from '../lib/entreprises';
 import { ObsBlock } from '../components/ReportDocument';
 import { Logo } from '../components/Logo';
@@ -108,7 +107,7 @@ function FicheDocument({ p, f, auj }: { p: Project; f: FicheEntreprise; auj: str
             <tbody>
               {f.echues.map((o) => (
                 <tr key={o.id}>
-                  <td className="nowrap"><strong>{pastilleLabel(o.numero)}</strong></td>
+                  <td className="nowrap"><strong>{nomPastille(p, o)}</strong></td>
                   <td>{o.actionDemandee || o.titre}</td>
                   <td className="nowrap">{fmt(o.echeance)}</td>
                   <td className="nowrap" style={{ color: '#a3412c', fontWeight: 700 }}>
@@ -148,7 +147,7 @@ function FicheDocument({ p, f, auj }: { p: Project; f: FicheEntreprise; auj: str
         <>
           <h2>Observations levées</h2>
           <p style={{ color: '#555' }}>
-            {f.terminees.map((o) => `${pastilleLabel(o.numero)} ${o.titre || 'Sans titre'} (${OBS_STATUS_LABEL[o.statut].toLowerCase()})`).join(' · ')}
+            {f.terminees.map((o) => `${nomPastille(p, o)} ${o.titre || 'Sans titre'} (${OBS_STATUS_LABEL[o.statut].toLowerCase()})`).join(' · ')}
           </p>
         </>
       )}

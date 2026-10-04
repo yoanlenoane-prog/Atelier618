@@ -2,7 +2,7 @@
 
 Atelier 618 est votre carnet de chantier numérique. Il réunit au même endroit le **planning (Gantt)**, les **plans avec pastilles**, les **observations** (texte + photos) et les **comptes rendus**. Toutes les données sont enregistrées dans **votre Google Drive**.
 
-> Principe clé : une information n’est saisie qu’une seule fois. Une pastille P-021 apparaît à la fois sur le plan, dans la liste des observations, dans la tâche concernée, dans le Gantt et dans les comptes rendus. Si vous la modifiez, elle est mise à jour partout.
+> Principe clé : une information n’est saisie qu’une seule fois. Une pastille 0102 apparaît à la fois sur le plan, dans la liste des observations, dans la tâche concernée, dans le Gantt et dans les comptes rendus. Si vous la modifiez, elle est mise à jour partout.
 
 ## 1. Première configuration (une seule fois)
 
@@ -137,9 +137,13 @@ Le fichier original est enregistré dans le dossier **Plans** de Drive. Utilisez
 
 1. Cliquez sur **+ Pastille** (le bouton devient « Touchez le plan… »).
 2. Touchez l’endroit concerné sur le plan.
-3. La pastille reçoit automatiquement le numéro suivant (P-001, P-002…) et sa fiche s’ouvre : titre, statut, lot/tâche, photos, texte. Sur le plan, **un clic sur une pastille ouvre directement sa fiche** pour la modifier (téléphone et ordinateur).
+3. La fiche de la pastille s’ouvre : titre, statut, lot/tâche, photos, texte. Sur le plan, **un clic sur une pastille ouvre directement sa fiche** pour la modifier (téléphone et ordinateur).
 
 La position est enregistrée en **pourcentage** du plan : elle reste juste quel que soit l’écran.
+
+### Nom des pastilles
+
+Une pastille porte le numéro de son **lot** puis de sa **tâche** : **0102** = lot 01, tâche 02. Si plusieurs pastilles concernent la même tâche, la première garde « 0102 » et les suivantes deviennent « 0102-2 », « 0102-3 »… (dans l’ordre de création). Une pastille rattachée à un lot sans tâche s’appelle par le seul numéro du lot (**01**). Tant qu’elle n’est rattachée à aucun lot, elle garde un numéro provisoire (**P-012**). Le nom suit automatiquement : si vous changez la tâche d’une pastille ou réordonnez les lots, il est mis à jour partout.
 
 ### Déplacer, zoomer
 
@@ -172,7 +176,7 @@ Tout est **enregistré automatiquement**, il n’y a pas de bouton « Enregistre
 
 La liste peut être affichée **par pastille** ou **par lot / tâche**, et filtrée par statut, lot, tâche ou mot-clé.
 
-Les photos sont rangées dans Drive dans `Photos / P-012 /`. Elles sont automatiquement allégées (≈ 2000 px) pour économiser l’espace.
+Les photos sont rangées dans Drive dans `Photos / 0102 /` (le nom de la pastille). Elles sont automatiquement allégées (≈ 2000 px) pour économiser l’espace.
 
 ### Annoter une photo
 
@@ -236,7 +240,7 @@ Le menu **Documents** permet d’ajouter devis, contrats, CR signés, photos… 
 
 Icône loupe en haut de l’écran. Tapez :
 
-- un numéro de pastille : `P-021` ou `21` ;
+- un nom de pastille : `0102`, `0102-2`, ou l’ancien numéro `P-021` ;
 - un mot : `électricité`, `gaine` ;
 - une entreprise, un lot, une tâche ;
 - une date : `23/09/2026`.
@@ -264,7 +268,7 @@ Dans votre Google Drive :
 
 - `ChantierApp / 01 - Maison Dupont / Projet / projet.json` : les données de l’application (ne pas modifier à la main) ;
 - `Plans` : les plans importés ;
-- `Photos / P-001, P-002…` : les photos, rangées par pastille ;
+- `Photos / 0101, 0102…` : les photos, rangées par pastille ;
 - `Photos / Photos` : les photos ajoutées dans **Documents** (raccourcis vers les fichiers rangés dans vos dossiers de documents : même photo, sans espace occupé en double) ;
 - `Documents / vos dossiers…` et `Comptes rendus` : vos fichiers, rangés comme dans l’application.
 

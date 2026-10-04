@@ -1,9 +1,8 @@
 import type { CompteRendu, Contact, Observation, Project } from '../types';
 import { fmt, fmtLong } from '../lib/dates';
-import { pastilleLabel } from '../lib/ids';
 import { CONTACT_CATEGORIE, OBS_STATUS_LABEL, REPORT_TYPE_LABEL, crConcernesLabel, crParticipants } from '../lib/labels';
 import { ReportGantt, tachesConcernees } from './ReportGantt';
-import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
+import { avancementProjet, codeSousBloc, findSousBloc, formatEcart, isOpen, sousBlocsEnRetard, nomPastille, nomsPastilles } from '../lib/planning';
 import { FileImage } from './FileImage';
 import { PlanView } from './PlanView';
 import { Logo } from './Logo';
@@ -15,7 +14,7 @@ export function ObsBlock({ p, o, showLoc }: { p: Project; o: Observation; showLo
   return (
     <div className="r-obs">
       <div className="row wrap" style={{ gap: 8 }}>
-        <span className={'pchip ' + o.statut} style={{ printColorAdjust: 'exact' }}>{pastilleLabel(o.numero)}</span>
+        <span className={'pchip ' + o.statut} style={{ printColorAdjust: 'exact' }}>{nomPastille(p, o)}</span>
         <span className="ttl">{o.titre || 'Sans titre'}</span>
         <span style={{ color: '#777', fontSize: 12 }}>
           {showLoc && sb && `${codeSousBloc(p, sb.sb.id)} ${sb.sb.nom} · `}
@@ -193,7 +192,7 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
             <div key={pl.id}>
               <h3>{pl.nom}</h3>
               <div className="r-plan">
-                <PlanView plan={pl} observations={obs.filter((o) => o.planId === pl.id)} zoom={1} static />
+                <PlanView plan={pl} observations={obs.filter((o) => o.planId === pl.id)} zoom={1} static noms={nomsPastilles(p)} />
               </div>
             </div>
           ))}
@@ -260,7 +259,7 @@ export function ReportDocument({ p, cr, auj }: { p: Project; cr: CompteRendu; au
             <tbody>
               {actions.map((o) => (
                 <tr key={o.id}>
-                  <td className="nowrap"><strong>{pastilleLabel(o.numero)}</strong></td>
+                  <td className="nowrap"><strong>{nomPastille(p, o)}</strong></td>
                   <td>{o.actionDemandee || o.titre}</td>
                   <td>{o.entreprise || '—'}</td>
                   <td className="nowrap">{fmt(o.echeance)}</td>

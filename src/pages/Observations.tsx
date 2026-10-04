@@ -2,10 +2,9 @@ import { useState } from 'react';
 import type { Observation, ObsStatus, Project } from '../types';
 import { useStore } from '../store';
 import { href, navigate } from '../router';
-import { pastilleLabel } from '../lib/ids';
 import { fmt } from '../lib/dates';
 import { OBS_STATUS, OBS_STATUS_LABEL } from '../lib/labels';
-import { codeBloc, codeSousBloc, findSousBloc, isOpen } from '../lib/planning';
+import { codeBloc, codeSousBloc, findSousBloc, isOpen, nomPastille } from '../lib/planning';
 import { createObservation, BlocSelect } from '../components/ObservationEditor';
 import { FileImage } from '../components/FileImage';
 import { Empty, Seg } from '../components/ui';
@@ -23,7 +22,7 @@ export function ObsRow({ p, o }: { p: Project; o: Observation }) {
   const plan = p.plans.find((x) => x.id === o.planId);
   return (
     <a className="item" href={href(`/p/${p.id}/obs/${o.id}`)}>
-      <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+      <span className={'pchip ' + o.statut}>{nomPastille(p, o)}</span>
       <div className="grow">
         <div style={{ fontWeight: 500 }}>{o.titre || <span className="muted">Sans titre</span>}</div>
         <div className="tiny muted">

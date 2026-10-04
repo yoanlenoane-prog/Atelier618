@@ -292,3 +292,40 @@ export function appliquerDependances(blocs: Bloc[]): number {
   }
   return moved.size;
 }
+
+const nomsCache = new WeakMap<Project, Map<string, string>>();
+
+/**
+ * Noms de toutes les pastilles d'un projet, d'après leur lot et leur tâche :
+ * lot 1 / tâche 2 → « 0102 » (puis « 0102-2 », « 0102-3 »… pour les suivantes, par ordre de création) ;
+ * lot seul → « 01 » ; non classée → « P-012 » (numéro de création).
+ */
+export function nomsPastilles(p: Project): Map<string, string> {
+  let noms = nomsCache.get(p);
+  if (noms) return noms;
+  noms = new Map();
+  const groupes = new Map<string, Observation[]>();
+  for (const o of [...p.observations].sort((a, b) => a.numero - b.numero)) {
+    let code: string | undefined;
+    const bi = p.blocs.findIndex((b) => b.id === o.blocId || b.sousBlocs.some((s) => s.id === o.sousBlocId));
+    if (bi >= 0) {
+      const si = o.sousBlocId ? p.blocs[bi].sousBlocs.findIndex((s) => s.id === o.sousBlocId) : -1;
+      code = String(bi + 1).padStart(2, '0') + (si >= 0 ? String(si + 1).padStart(2, '0') : '');
+    }
+    if (!code) {
+      noms.set(o.id, 'P-' + String(o.numero).padStart(3, '0'));
+      continue;
+    }
+    const g = groupes.get(code) || [];
+    g.push(o);
+    groupes.set(code, g);
+    noms.set(o.id, g.length === 1 ? code : `${code}-${g.length}`);
+  }
+  nomsCache.set(p, noms);
+  return noms;
+}
+
+/** Nom d'une pastille (voir nomsPastilles). */
+export function nomPastille(p: Project, o: Observation): string {
+  return nomsPastilles(p).get(o.id) ?? 'P-' + String(o.numero).padStart(3, '0');
+}

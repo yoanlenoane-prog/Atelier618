@@ -14,11 +14,11 @@ Application personnelle de suivi de chantier pour architecte : **Gantt prévisio
 | Structure | lots / tâches (réordonnables), dates de lot déduites des tâches, enchaînement des tâches (fin → début, avec délai) |
 | Gantt | export PDF paysage au format adapté à la durée (A4 → A0), barres prévu / réel, ligne « Aujourd’hui » automatique, dépassement en rouge, avance en vert, projection de fin, écarts en jours, lots repliables, flèches de dépendance, zoom jour/semaine/mois, observations ouvertes par ligne |
 | Plans | import PDF (page au choix) / JPG / PNG, zoom (pincement, Ctrl + molette), plusieurs plans par projet |
-| Pastilles | numérotation P-001…, placement en coordonnées relatives, déplacement, couleur selon le statut, filtres |
+| Pastilles | nom d’après le lot et la tâche (0102, 0102-2, 01 ; P-012 si non classée), placement en coordonnées relatives, déplacement, couleur selon le statut, filtres |
 | Observations | titre, statut, lot/tâche, entreprise, paragraphes et photos ordonnés, annotation des photos (flèches, cercles, texte…), action demandée, échéance, historique |
 | Comptes rendus | numérotation, personnes présentes (annuaire avec tél. / e-mail), convocation au prochain rendez-vous (e-mail), intempéries, interventions prévues, extrait du Gantt des entreprises concernées, image du projet, rubriques par lot/tâche, présentation par lot **ou** par pastille (sans double saisie), plans avec pastilles, tableau des actions, export PDF |
 | Transverse | vue d’ensemble multi-chantiers, tableau de bord, fiches entreprises imprimables (relance), recherche (pastille, mot, entreprise, date…), documents rangés dans des dossiers |
-| Drive | dossiers `ChantierApp/NN - Projet/{Projet,Plans,Photos/P-xxx,Documents/…,Comptes rendus}` (dossiers de documents créés dans l’application), `projet.json` |
+| Drive | dossiers `ChantierApp/NN - Projet/{Projet,Plans,Photos/0102…,Documents/…,Comptes rendus}` (dossiers de documents créés dans l’application), `projet.json` |
 | Hors ligne | données et fichiers en local (IndexedDB), file d’envoi, fusion par élément entre appareils, service worker |
 
 ## Architecture

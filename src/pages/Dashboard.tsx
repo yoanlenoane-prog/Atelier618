@@ -3,8 +3,7 @@ import type { ContentItem, Project } from '../types';
 import { accent } from '../lib/theme';
 import { href } from '../router';
 import { diffDays, fmt, fmtShort } from '../lib/dates';
-import { pastilleLabel } from '../lib/ids';
-import { analyseSousBloc, avancementProjet, codeSousBloc, formatEcart, isOpen, sousBlocsEnRetard } from '../lib/planning';
+import { analyseSousBloc, avancementProjet, codeSousBloc, formatEcart, isOpen, sousBlocsEnRetard, nomPastille } from '../lib/planning';
 import { PROJECT_STATUS_LABEL } from '../lib/labels';
 import { FileImage } from '../components/FileImage';
 import { Progress, useToday } from '../components/ui';
@@ -31,7 +30,7 @@ export function Dashboard({ p }: { p: Project }) {
       if (sb.finPrevue && a.state !== 'termine' && sb.finPrevue >= auj) echeances.push({ date: sb.finPrevue, label: `Fin ${sb.nom}`, link: `/p/${p.id}/gantt` });
     }
   for (const o of p.observations)
-    if (o.echeance && isOpen(o) && o.echeance >= auj) echeances.push({ date: o.echeance, label: `${pastilleLabel(o.numero)} ${o.titre}`, link: `/p/${p.id}/obs/${o.id}` });
+    if (o.echeance && isOpen(o) && o.echeance >= auj) echeances.push({ date: o.echeance, label: `${nomPastille(p, o)} ${o.titre}`, link: `/p/${p.id}/obs/${o.id}` });
   echeances.sort((a, b) => (a.date < b.date ? -1 : 1));
 
   const shortcuts = [
@@ -137,7 +136,7 @@ export function Dashboard({ p }: { p: Project }) {
           ) : (
             <div className="thumbs">
               {photos.map(({ c, o }) => (
-                <a key={c.id} className="thumb" href={href(`/p/${p.id}/obs/${o.id}`)} title={`${pastilleLabel(o.numero)} ${o.titre}`}>
+                <a key={c.id} className="thumb" href={href(`/p/${p.id}/obs/${o.id}`)} title={`${nomPastille(p, o)} ${o.titre}`}>
                   <FileImage file={c.file} />
                 </a>
               ))}

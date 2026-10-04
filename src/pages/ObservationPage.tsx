@@ -1,12 +1,12 @@
 import type { Project } from '../types';
 import { useStore } from '../store';
 import { href, navigate } from '../router';
-import { pastilleLabel } from '../lib/ids';
 import { fmt } from '../lib/dates';
 import { ObservationEditor } from '../components/ObservationEditor';
 import { PlanView } from '../components/PlanView';
 import { Empty, toast } from '../components/ui';
 import { IconPlan, IconTrash } from '../components/Icons';
+import { nomPastille } from '../lib/planning';
 
 export function ObservationPage({ p, obsId }: { p: Project; obsId: string }) {
   const store = useStore();
@@ -24,11 +24,11 @@ export function ObservationPage({ p, obsId }: { p: Project; obsId: string }) {
     <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', alignItems: 'start' }}>
       <div className="card">
         <div className="row between" style={{ marginBottom: 14 }}>
-          <span className={'pchip ' + o.statut} style={{ fontSize: 16, padding: '4px 14px' }}>{pastilleLabel(o.numero)}</span>
+          <span className={'pchip ' + o.statut} style={{ fontSize: 16, padding: '4px 14px' }}>{nomPastille(p, o)}</span>
           <button
             className="btn danger sm"
             onClick={async () => {
-              if (!window.confirm(`Supprimer l’observation ${pastilleLabel(o.numero)} ?`)) return;
+              if (!window.confirm(`Supprimer l’observation ${nomPastille(p, o)} ?`)) return;
               await store.update(p.id, (d) => {
                 d.observations = d.observations.filter((x) => x.id !== o.id);
                 d.comptesRendus = d.comptesRendus.map((c) => ({ ...c, observationIds: c.observationIds.filter((id) => id !== o.id) }));

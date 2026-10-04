@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import type { Project, SousBloc } from '../types';
 import { useStore } from '../store';
-import { analyseSousBloc, codeSousBloc, debutContraint, duree, formatEcart, predecesseurs, TASK_STATE_LABEL, toutesTaches } from '../lib/planning';
+import { analyseSousBloc, codeSousBloc, debutContraint, duree, formatEcart, predecesseurs, TASK_STATE_LABEL, toutesTaches, nomPastille } from '../lib/planning';
 import { addDays } from '../lib/dates';
 import { fmt } from '../lib/dates';
 import { href } from '../router';
 import { Modal, useToday } from './ui';
 import { OBS_STATUS_LABEL } from '../lib/labels';
-import { pastilleLabel } from '../lib/ids';
 
 /** Fiche d'un sous-bloc : dates prévues / réelles, avancement, observations liées. */
 export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBlocId: string; onClose: () => void }) {
@@ -159,7 +158,7 @@ export function SousBlocModal({ p, sousBlocId, onClose }: { p: Project; sousBloc
           <div className="list">
             {obs.map((o) => (
               <a key={o.id} className="item" href={href(`/p/${p.id}/obs/${o.id}`)}>
-                <span className={'pchip ' + o.statut}>{pastilleLabel(o.numero)}</span>
+                <span className={'pchip ' + o.statut}>{nomPastille(p, o)}</span>
                 <span className="grow">{o.titre || 'Sans titre'}</span>
                 <span className="tiny muted">{OBS_STATUS_LABEL[o.statut]}</span>
               </a>
